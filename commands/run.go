@@ -360,9 +360,9 @@ func createDriverCommands(action string, entities []string) *cobra.Command {
 		}
 
 		var requiredStr bytes.Buffer
-		if len(templDef.Required()) > 0 {
+		if len(templDef.RequiredNames()) > 0 {
 			requiredStr.WriteString("\n\tRequired params:")
-			for _, req := range templDef.Required() {
+			for _, req := range templDef.RequiredNames() {
 				requiredStr.WriteString(fmt.Sprintf("\n\t\t- %s", req))
 				if d, ok := awsdoc.TemplateParamsDoc(templDef.Name(), req); ok {
 					requiredStr.WriteString(fmt.Sprintf(": %s", d))
@@ -371,9 +371,9 @@ func createDriverCommands(action string, entities []string) *cobra.Command {
 		}
 
 		var extraStr bytes.Buffer
-		if len(templDef.Extra()) > 0 {
+		if len(templDef.ExtraNames()) > 0 {
 			extraStr.WriteString("\n\tExtra params:")
-			for _, ext := range templDef.Extra() {
+			for _, ext := range templDef.ExtraNames() {
 				extraStr.WriteString(fmt.Sprintf("\n\t\t- %s", ext))
 				if d, ok := awsdoc.TemplateParamsDoc(templDef.Name(), ext); ok {
 					extraStr.WriteString(fmt.Sprintf(": %s", d))
@@ -382,10 +382,10 @@ func createDriverCommands(action string, entities []string) *cobra.Command {
 		}
 
 		var validArgs []string
-		for _, param := range templDef.Required() {
+		for _, param := range templDef.RequiredNames() {
 			validArgs = append(validArgs, param+"=")
 		}
-		for _, param := range templDef.Extra() {
+		for _, param := range templDef.ExtraNames() {
 			validArgs = append(validArgs, param+"=")
 		}
 		actionCmd.AddCommand(

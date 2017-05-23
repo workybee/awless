@@ -34,7 +34,7 @@ func (defs Definitions) Map(fn func(Definition) string) (reduced []string) {
 
 type Definition struct {
 	Action, Entity, Api         string
-	RequiredParams, ExtraParams []string
+	RequiredParams, ExtraParams []*Param
 }
 
 func (def Definition) Name() string {
@@ -53,10 +53,32 @@ func (def Definition) GetTemplate() (*Template, error) {
 	return Parse(def.String())
 }
 
-func (def Definition) Required() []string {
+func (def Definition) Required() []*Param {
 	return def.RequiredParams
 }
 
-func (def Definition) Extra() []string {
+func (def Definition) RequiredNames() (names []string) {
+	for _, r := range def.RequiredParams {
+		names = append(names, r.Name)
+	}
+	return
+}
+
+func (def Definition) Extra() []*Param {
 	return def.ExtraParams
+}
+
+func (def Definition) ExtraNames() (names []string) {
+	for _, r := range def.Extra() {
+		names = append(names, r.Name)
+	}
+	return
+}
+
+type Param struct {
+	Name             string
+	ParamType        string
+	Documentation    string
+	AutoCompleteFunc func(string) []string
+	ValidateFunc     func(string) error
 }

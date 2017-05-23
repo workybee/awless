@@ -111,25 +111,25 @@ func resolveAgainstDefinitions(tpl *Template, env *Env) (*Template, *Env, error)
 			var found bool
 
 			for _, k := range def.Required() {
-				if k == key {
+				if k.Name == key {
 					found = true
 					break
 				}
 			}
 
 			for _, k := range def.Extra() {
-				if k == key {
+				if k.Name == key {
 					found = true
 					break
 				}
 			}
 			if !found {
 				var extraParams, requiredParams string
-				if len(def.Extra()) > 0 {
-					extraParams = fmt.Sprintf("\n\t- extra params: %s", strings.Join(def.Extra(), ", "))
+				if len(def.ExtraNames()) > 0 {
+					extraParams = fmt.Sprintf("\n\t- extra params: %s", strings.Join(def.ExtraNames(), ", "))
 				}
-				if len(def.Required()) > 0 {
-					requiredParams = fmt.Sprintf("\n\t- required params: %s", strings.Join(def.Required(), ", "))
+				if len(def.RequiredNames()) > 0 {
+					requiredParams = fmt.Sprintf("\n\t- required params: %s", strings.Join(def.RequiredNames(), ", "))
 				}
 				return fmt.Errorf("%s %s: unexpected param key '%s'%s%s\n", cmd.Action, cmd.Entity, key, requiredParams, extraParams)
 			}
@@ -153,23 +153,23 @@ func resolveAgainstDefinitions(tpl *Template, env *Env) (*Template, *Env, error)
 			var isInRefs bool
 
 			for k := range cmd.Params {
-				if k == required {
+				if k == required.Name {
 					isInParams = true
 				}
 			}
 			for k := range cmd.Refs {
-				if k == required {
+				if k == required.Name {
 					isInRefs = true
 				}
 			}
-			normalized := fmt.Sprintf("%s.%s", cmd.Entity, required)
+			normalized := fmt.Sprintf("%s.%s", cmd.Entity, required.Name)
 
 			if isInParams || isInRefs {
 				delete(cmd.Holes, normalized)
 				continue
 			} else {
-				if _, ok := cmd.Holes[required]; !ok {
-					cmd.Holes[required] = normalized
+				if _, ok := cmd.Holes[required.Name]; !ok {
+					cmd.Holes[required.Name] = normalized
 				}
 			}
 		}
