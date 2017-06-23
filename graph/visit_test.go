@@ -17,8 +17,11 @@ limitations under the License.
 package graph_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+
+	"bytes"
 
 	"github.com/wallix/awless/graph"
 )
@@ -67,5 +70,91 @@ func TestCollectors(t *testing.T) {
 			t.Fatalf("%d. got %#v, want %#v", i, got, want)
 		}
 	}
+}
 
+func TestPrintResourceInTree(t *testing.T) {
+	g := graph.NewGraph()
+	r := graph.InitResource("region", "pacific")
+	i1 := graph.InitResource("instance", "inst_1")
+	i2 := graph.InitResource("instance", "inst_2")
+	i3 := graph.InitResource("instance", "inst_3")
+	s1 := graph.InitResource("subnet", "sub_1")
+	s2 := graph.InitResource("subnet", "sub_2")
+	v1 := graph.InitResource("vpc", "vpc_1")
+	v2 := graph.InitResource("vpc", "vpc_2")
+	err := g.AddResource(r, i1, i2, i3, s1, s2, v1, v2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.AddParentRelation(r, v1)
+	g.AddParentRelation(r, v2)
+
+	g.AddParentRelation(s1, i1)
+	g.AddParentRelation(s1, i2)
+	g.AddParentRelation(s2, i3)
+	g.AddParentRelation(v1, s1)
+	g.AddParentRelation(v2, s2)
+
+	root, lineaG, err := g.ExtractLineageGraph(s1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var actual bytes.Buffer
+	p := graph.NewTreePrinter(s1, lineaG)
+	p.Root = root
+	p.Onresource = func(s string) string { return "*" + s + "*" }
+	p.Print(&actual)
+
+	expected := `pacific[region]
+	↳ vpc_1[vpc]
+		↳ *sub_1[subnet]*
+			↳ inst_1[instance]
+			↳ inst_2[instance]`
+	if actual.String() != expected {
+		t.Fatalf("got\n%s\n\nwant\n%s\n", actual.String(), expected)
+	}
+}
+
+func TestExtractLineageGraph(t *testing.T) {
+	g := graph.NewGraph()
+	r := graph.InitResource("region", "pacific")
+	i1 := graph.InitResource("instance", "inst_1")
+	i2 := graph.InitResource("instance", "inst_2")
+	i3 := graph.InitResource("instance", "inst_3")
+	s1 := graph.InitResource("subnet", "sub_1")
+	s2 := graph.InitResource("subnet", "sub_2")
+	v1 := graph.InitResource("vpc", "vpc_1")
+	v2 := graph.InitResource("vpc", "vpc_2")
+	err := g.AddResource(r, i1, i2, i3, s1, s2, v1, v2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.AddParentRelation(r, v1)
+	g.AddParentRelation(r, v2)
+
+	g.AddParentRelation(s1, i1)
+	g.AddParentRelation(s1, i2)
+	g.AddParentRelation(s2, i3)
+	g.AddParentRelation(v1, s1)
+	g.AddParentRelation(v2, s2)
+
+	root, lineage, err := g.ExtractLineageGraph(s1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var concat bytes.Buffer
+	lineage.Accept(&graph.ChildrenVisitor{
+		From: root,
+		Each: func(res *graph.Resource, depth int) error {
+			concat.WriteString(fmt.Sprintf("(%d)%s", depth, res.Id()))
+			return nil
+		},
+		IncludeFrom: true,
+	})
+
+	if got, want := concat.String(), "(0)pacific(1)vpc_1(2)sub_1(3)inst_1(3)inst_2"; got != want {
+		t.Fatalf("got %s, want %s", got, want)
+	}
 }

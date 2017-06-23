@@ -17,8 +17,13 @@ limitations under the License.
 package graph
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"sort"
+	"strings"
+
+	"io/ioutil"
 
 	"github.com/wallix/awless/cloud/rdf"
 	tstore "github.com/wallix/triplestore"
@@ -33,6 +38,13 @@ type visitEachFunc func(res *Resource, depth int) error
 func VisitorCollectFunc(collect *[]*Resource) visitEachFunc {
 	return func(res *Resource, depth int) error {
 		*collect = append(*collect, res)
+		return nil
+	}
+}
+
+func VisitorPrependFunc(collect *[]*Resource) visitEachFunc {
+	return func(res *Resource, depth int) error {
+		*collect = append([]*Resource{res}, *collect...)
 		return nil
 	}
 }
@@ -202,6 +214,104 @@ func visitSiblings(snap tstore.RDFGraph, start string, each func(tstore.RDFGraph
 				}
 			}
 		}
+	}
+
+	return nil
+}
+
+type TreePrinter struct {
+	G          *Graph
+	Root       *Resource
+	R          *Resource
+	Onresource func(string) string
+}
+
+func NewTreePrinter(r *Resource, g *Graph) *TreePrinter {
+	return &TreePrinter{
+		G: g, Onresource: func(id string) string { return id },
+	}
+}
+
+func (g *Graph) ExtractLineageGraph(r *Resource) (*Resource, *Graph, error) {
+	gph := NewGraph()
+
+	var child *Resource
+	var lastDepth int
+	var parents []*Resource
+
+	extractParents := func(res *Resource, depth int) error {
+		parents = append([]*Resource{res}, parents...)
+		if child != nil {
+			gph.AddParentRelation(res, child)
+		}
+		if lastDepth != depth {
+			lastDepth = depth
+			child = res
+		}
+		return gph.AddResource(res)
+	}
+	if err := g.Accept(&ParentsVisitor{From: r, Each: extractParents}); err != nil {
+		return nil, nil, err
+	}
+
+	lastDepth = 0
+	parent := r
+
+	extractChildren := func(res *Resource, depth int) error {
+		if lastDepth != depth {
+			parent = res
+		}
+		if err := gph.AddResource(res); err != nil {
+			return err
+		}
+		if err := gph.AddParentRelation(parent, res); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := g.Accept(&ChildrenVisitor{From: r, Each: extractChildren, IncludeFrom: true}); err != nil {
+		return nil, nil, err
+	}
+
+	root := r
+	if len(parents) > 0 {
+		gph.AddParentRelation(parents[len(parents)-1], r)
+		root = parents[0]
+	}
+
+	err := ioutil.WriteFile("./children.triples", []byte(gph.MustMarshal()), 0600)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return root, gph, nil
+}
+
+func (tp *TreePrinter) Print(w io.Writer) error {
+	var childrenW bytes.Buffer
+	var hasChildren bool
+	printWithTabs := func(r *Resource, distance int) error {
+		var tabs bytes.Buffer
+		tabs.WriteString(strings.Repeat(" ", distance))
+		for i := 0; i < distance; i++ {
+			tabs.WriteByte('\t')
+		}
+
+		display := r.String()
+		if r.Same(tp.R) {
+			display = tp.Onresource(tp.R.String())
+		} else {
+			hasChildren = true
+		}
+		fmt.Fprintf(&childrenW, "%s└── %s\n", tabs.String(), display)
+		return nil
+	}
+	if err := tp.G.Accept(&ChildrenVisitor{From: tp.Root, Each: printWithTabs, IncludeFrom: true}); err != nil {
+		return err
+	}
+
+	if hasChildren {
+		fmt.Fprintf(w, childrenW.String())
 	}
 
 	return nil
