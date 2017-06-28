@@ -180,7 +180,7 @@ func (g *Graph) Accept(v Visitor) error {
 }
 
 func (g *Graph) Unmarshal(data []byte) error {
-	ts, err := tstore.NewBinaryDecoder(bytes.NewReader(data)).Decode()
+	ts, err := tstore.NewAutoDecoder(bytes.NewReader(data)).Decode()
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func (g *Graph) Unmarshal(data []byte) error {
 }
 
 func (g *Graph) UnmarshalMultiple(readers ...io.Reader) error {
-	dec := tstore.NewDatasetDecoder(tstore.NewBinaryDecoder, readers...)
+	dec := tstore.NewDatasetDecoder(tstore.NewAutoDecoder, readers...)
 	ts, err := dec.Decode()
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func (g *Graph) MustMarshal() string {
 
 func (g *Graph) Marshal() ([]byte, error) {
 	var buff bytes.Buffer
-	err := tstore.NewBinaryEncoder(&buff).Encode(g.store.Snapshot().Triples()...)
+	err := tstore.NewNTriplesEncoder(&buff).Encode(g.store.Snapshot().Triples()...)
 	return buff.Bytes(), err
 }
 
