@@ -118,8 +118,17 @@ func initAWSSession(region, profile string) (*session.Session, error) {
 	}
 
 	if _, err = session.Config.Credentials.Get(); err != nil {
-		return nil, errors.New("Your AWS credentials seem undefined! AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY need to be exported in your CLI environment\nInstallation documentation is at https://github.com/wallix/awless/wiki/Installation")
+		fmt.Println("Your AWS credentials AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY could not be found")
+		access, secret, err := promptCredentials()
+		if err != nil {
+			return nil, fmt.Errorf("prompting credentials: %s", err)
+		}
+		where, err := storeAWSCredentials(access, secret, "default")
+		if err != nil {
+			return nil, fmt.Errorf("storing credentials at '%s': %s", where, err)
+		}
 	}
+
 	session.Config.HTTPClient = http.DefaultClient
 
 	return session, nil
