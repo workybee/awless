@@ -66,6 +66,7 @@ func (a *AST) addParamKey(text string) {
 	node := a.currentCommand()
 	if node.Params == nil {
 		node.Refs = make(map[string]string)
+		node.RefsList = make(map[string][]string)
 		node.Params = make(map[string]interface{})
 		node.Holes = make(map[string]string)
 	}
@@ -137,6 +138,16 @@ func (a *AST) addParamIpValue(text string) {
 func (a *AST) addParamRefValue(text string) {
 	if node := a.currentCommand(); node != nil {
 		node.Refs[a.currentKey] = text
+	}
+}
+
+func (a *AST) addParamRefsListValue(text string) {
+	var idents []string
+	for _, r := range strings.Split(text, ",") {
+		idents = append(idents, strings.TrimSpace(r)[1:])
+	}
+	if node := a.currentCommand(); node != nil {
+		node.RefsList[a.currentKey] = append(node.RefsList[a.currentKey], idents...)
 	}
 }
 

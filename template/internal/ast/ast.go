@@ -62,6 +62,7 @@ type CommandNode struct {
 	CmdErr    error
 
 	Action, Entity string
+	RefsList       map[string][]string
 	Refs           map[string]string
 	Params         map[string]interface{}
 	Holes          map[string]string
@@ -78,6 +79,9 @@ func (n *CommandNode) Keys() (keys []string) {
 		keys = append(keys, k)
 	}
 	for k := range n.Refs {
+		keys = append(keys, k)
+	}
+	for k := range n.RefsList {
 		keys = append(keys, k)
 	}
 
@@ -159,13 +163,17 @@ func (n *DeclarationNode) String() string {
 func (n *CommandNode) clone() Node {
 	cmd := &CommandNode{
 		Action: n.Action, Entity: n.Entity,
-		Refs:   make(map[string]string),
-		Params: make(map[string]interface{}),
-		Holes:  make(map[string]string),
+		Refs:     make(map[string]string),
+		RefsList: make(map[string][]string),
+		Params:   make(map[string]interface{}),
+		Holes:    make(map[string]string),
 	}
 
 	for k, v := range n.Refs {
 		cmd.Refs[k] = v
+	}
+	for k, v := range n.RefsList {
+		cmd.RefsList[k] = v
 	}
 	for k, v := range n.Params {
 		cmd.Params[k] = v
@@ -181,6 +189,13 @@ func (n *CommandNode) String() string {
 	var all []string
 	for k, v := range n.Refs {
 		all = append(all, fmt.Sprintf("%s=$%s", k, v))
+	}
+	for k, v := range n.RefsList {
+		var refs []string
+		for _, e := range v {
+			refs = append(refs, "$"+e)
+		}
+		all = append(all, fmt.Sprintf("%s=[%s]", k, strings.Join(refs, ",")))
 	}
 	for k, v := range n.Params {
 		all = append(all, fmt.Sprintf("%s=%s", k, printParamValue(v)))

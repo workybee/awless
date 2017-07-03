@@ -35,6 +35,7 @@ const (
 	ruleIpValue
 	ruleIntRangeValue
 	ruleRefValue
+	ruleRefsListValue
 	ruleAliasValue
 	ruleHoleValue
 	ruleComment
@@ -67,6 +68,7 @@ const (
 	ruleAction16
 	ruleAction17
 	ruleAction18
+	ruleAction19
 )
 
 var rul3s = [...]string{
@@ -92,6 +94,7 @@ var rul3s = [...]string{
 	"IpValue",
 	"IntRangeValue",
 	"RefValue",
+	"RefsListValue",
 	"AliasValue",
 	"HoleValue",
 	"Comment",
@@ -124,6 +127,7 @@ var rul3s = [...]string{
 	"Action16",
 	"Action17",
 	"Action18",
+	"Action19",
 }
 
 type token32 struct {
@@ -240,7 +244,7 @@ type Peg struct {
 
 	Buffer string
 	buffer []rune
-	rules  [54]func() bool
+	rules  [56]func() bool
 	parse  func(rule ...int) error
 	reset  func()
 	Pretty bool
@@ -359,16 +363,18 @@ func (p *Peg) Execute() {
 		case ruleAction12:
 			p.addParamRefValue(text)
 		case ruleAction13:
-			p.addParamCidrValue(text)
+			p.addParamRefsListValue(text)
 		case ruleAction14:
-			p.addParamIpValue(text)
+			p.addParamCidrValue(text)
 		case ruleAction15:
-			p.addCsvValue(text)
+			p.addParamIpValue(text)
 		case ruleAction16:
-			p.addParamValue(text)
+			p.addCsvValue(text)
 		case ruleAction17:
-			p.LineDone()
+			p.addParamValue(text)
 		case ruleAction18:
+			p.LineDone()
+		case ruleAction19:
 			p.LineDone()
 
 		}
@@ -573,7 +579,7 @@ func (p *Peg) Init() {
 									position, tokenIndex = position25, tokenIndex25
 								}
 								{
-									add(ruleAction17, position)
+									add(ruleAction18, position)
 								}
 							}
 						l19:
@@ -733,7 +739,7 @@ func (p *Peg) Init() {
 										position, tokenIndex = position53, tokenIndex53
 									}
 									{
-										add(ruleAction17, position)
+										add(ruleAction18, position)
 									}
 								}
 							l47:
@@ -910,33 +916,77 @@ func (p *Peg) Init() {
 							{
 								position91 := position
 								{
-									position92, tokenIndex92 := position, tokenIndex
-									{
-										position94 := position
-										if buffer[position] != rune('$') {
-											goto l93
-										}
-										position++
+									switch buffer[position] {
+									case '[':
 										{
-											position95 := position
-											if !_rules[ruleIdentifier]() {
-												goto l93
+											position93 := position
+											if buffer[position] != rune('[') {
+												goto l83
 											}
-											add(rulePegText, position95)
+											position++
+											{
+												position94 := position
+												if !_rules[ruleWhiteSpacing]() {
+													goto l83
+												}
+												if !_rules[ruleRefValue]() {
+													goto l83
+												}
+											l95:
+												{
+													position96, tokenIndex96 := position, tokenIndex
+													if !_rules[ruleRefValue]() {
+														goto l96
+													}
+													goto l95
+												l96:
+													position, tokenIndex = position96, tokenIndex96
+												}
+											l97:
+												{
+													position98, tokenIndex98 := position, tokenIndex
+													if buffer[position] != rune(',') {
+														goto l98
+													}
+													position++
+													if !_rules[ruleWhiteSpacing]() {
+														goto l98
+													}
+													if !_rules[ruleRefValue]() {
+														goto l98
+													}
+													goto l97
+												l98:
+													position, tokenIndex = position98, tokenIndex98
+												}
+												add(rulePegText, position94)
+											}
+											if buffer[position] != rune(']') {
+												goto l83
+											}
+											position++
+											add(ruleRefsListValue, position93)
 										}
-										add(ruleRefValue, position94)
-									}
-									{
-										add(ruleAction12, position)
-									}
-									goto l92
-								l93:
-									position, tokenIndex = position92, tokenIndex92
-									if !_rules[ruleNoRefValue]() {
-										goto l83
+										{
+											add(ruleAction13, position)
+										}
+										break
+									case '$':
+										if !_rules[ruleRefValue]() {
+											goto l83
+										}
+										{
+											add(ruleAction12, position)
+										}
+										break
+									default:
+										if !_rules[ruleNoRefValue]() {
+											goto l83
+										}
+										break
 									}
 								}
-							l92:
+
 								add(ruleValue, position91)
 							}
 							if !_rules[ruleWhiteSpacing]() {
@@ -948,13 +998,13 @@ func (p *Peg) Init() {
 						{
 							position87, tokenIndex87 := position, tokenIndex
 							{
-								position97 := position
+								position101 := position
 								{
-									position98 := position
+									position102 := position
 									if !_rules[ruleIdentifier]() {
 										goto l87
 									}
-									add(rulePegText, position98)
+									add(rulePegText, position102)
 								}
 								{
 									add(ruleAction6, position)
@@ -963,41 +1013,85 @@ func (p *Peg) Init() {
 									goto l87
 								}
 								{
-									position100 := position
+									position104 := position
 									{
-										position101, tokenIndex101 := position, tokenIndex
-										{
-											position103 := position
-											if buffer[position] != rune('$') {
-												goto l102
-											}
-											position++
+										switch buffer[position] {
+										case '[':
 											{
-												position104 := position
-												if !_rules[ruleIdentifier]() {
-													goto l102
+												position106 := position
+												if buffer[position] != rune('[') {
+													goto l87
 												}
-												add(rulePegText, position104)
+												position++
+												{
+													position107 := position
+													if !_rules[ruleWhiteSpacing]() {
+														goto l87
+													}
+													if !_rules[ruleRefValue]() {
+														goto l87
+													}
+												l108:
+													{
+														position109, tokenIndex109 := position, tokenIndex
+														if !_rules[ruleRefValue]() {
+															goto l109
+														}
+														goto l108
+													l109:
+														position, tokenIndex = position109, tokenIndex109
+													}
+												l110:
+													{
+														position111, tokenIndex111 := position, tokenIndex
+														if buffer[position] != rune(',') {
+															goto l111
+														}
+														position++
+														if !_rules[ruleWhiteSpacing]() {
+															goto l111
+														}
+														if !_rules[ruleRefValue]() {
+															goto l111
+														}
+														goto l110
+													l111:
+														position, tokenIndex = position111, tokenIndex111
+													}
+													add(rulePegText, position107)
+												}
+												if buffer[position] != rune(']') {
+													goto l87
+												}
+												position++
+												add(ruleRefsListValue, position106)
 											}
-											add(ruleRefValue, position103)
-										}
-										{
-											add(ruleAction12, position)
-										}
-										goto l101
-									l102:
-										position, tokenIndex = position101, tokenIndex101
-										if !_rules[ruleNoRefValue]() {
-											goto l87
+											{
+												add(ruleAction13, position)
+											}
+											break
+										case '$':
+											if !_rules[ruleRefValue]() {
+												goto l87
+											}
+											{
+												add(ruleAction12, position)
+											}
+											break
+										default:
+											if !_rules[ruleNoRefValue]() {
+												goto l87
+											}
+											break
 										}
 									}
-								l101:
-									add(ruleValue, position100)
+
+									add(ruleValue, position104)
 								}
 								if !_rules[ruleWhiteSpacing]() {
 									goto l87
 								}
-								add(ruleParam, position97)
+								add(ruleParam, position101)
 							}
 							goto l86
 						l87:
@@ -1026,270 +1120,270 @@ func (p *Peg) Init() {
 		nil,
 		/* 9 Identifier <- <((&('.') '.') | (&('_') '_') | (&('-') '-') | (&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') [0-9]) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z') [A-Z]) | (&('a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z') [a-z]))+> */
 		func() bool {
-			position109, tokenIndex109 := position, tokenIndex
+			position117, tokenIndex117 := position, tokenIndex
 			{
-				position110 := position
+				position118 := position
 				{
 					switch buffer[position] {
 					case '.':
 						if buffer[position] != rune('.') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					case '_':
 						if buffer[position] != rune('_') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					case '-':
 						if buffer[position] != rune('-') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 						if c := buffer[position]; c < rune('0') || c > rune('9') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
 						if c := buffer[position]; c < rune('A') || c > rune('Z') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					default:
 						if c := buffer[position]; c < rune('a') || c > rune('z') {
-							goto l109
+							goto l117
 						}
 						position++
 						break
 					}
 				}
 
-			l111:
+			l119:
 				{
-					position112, tokenIndex112 := position, tokenIndex
+					position120, tokenIndex120 := position, tokenIndex
 					{
 						switch buffer[position] {
 						case '.':
 							if buffer[position] != rune('.') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						case '_':
 							if buffer[position] != rune('_') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						case '-':
 							if buffer[position] != rune('-') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
 							if c := buffer[position]; c < rune('A') || c > rune('Z') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						default:
 							if c := buffer[position]; c < rune('a') || c > rune('z') {
-								goto l112
+								goto l120
 							}
 							position++
 							break
 						}
 					}
 
-					goto l111
-				l112:
-					position, tokenIndex = position112, tokenIndex112
+					goto l119
+				l120:
+					position, tokenIndex = position120, tokenIndex120
 				}
-				add(ruleIdentifier, position110)
+				add(ruleIdentifier, position118)
 			}
 			return true
-		l109:
-			position, tokenIndex = position109, tokenIndex109
+		l117:
+			position, tokenIndex = position117, tokenIndex117
 			return false
 		},
 		/* 10 NoRefValue <- <((AliasValue Action8) / (DoubleQuote CustomTypedValue DoubleQuote) / (SingleQuote CustomTypedValue SingleQuote) / CustomTypedValue / ((&('\'') (SingleQuote <SingleQuotedValue> Action10 SingleQuote)) | (&('"') (DoubleQuote <DoubleQuotedValue> Action9 DoubleQuote)) | (&('{') (HoleValue Action7)) | (&('*' | '+' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '>' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '~') (<OtherParamValue> Action11))))> */
 		func() bool {
-			position115, tokenIndex115 := position, tokenIndex
+			position123, tokenIndex123 := position, tokenIndex
 			{
-				position116 := position
+				position124 := position
 				{
-					position117, tokenIndex117 := position, tokenIndex
+					position125, tokenIndex125 := position, tokenIndex
 					{
-						position119 := position
+						position127 := position
 						{
-							position120, tokenIndex120 := position, tokenIndex
+							position128, tokenIndex128 := position, tokenIndex
 							if buffer[position] != rune('@') {
-								goto l121
+								goto l129
 							}
 							position++
 							{
-								position122 := position
+								position130 := position
 								if !_rules[ruleOtherParamValue]() {
-									goto l121
+									goto l129
 								}
-								add(rulePegText, position122)
+								add(rulePegText, position130)
 							}
-							goto l120
-						l121:
-							position, tokenIndex = position120, tokenIndex120
+							goto l128
+						l129:
+							position, tokenIndex = position128, tokenIndex128
 							if buffer[position] != rune('@') {
-								goto l123
+								goto l131
 							}
 							position++
 							if !_rules[ruleDoubleQuote]() {
-								goto l123
+								goto l131
 							}
 							{
-								position124 := position
+								position132 := position
 								if !_rules[ruleDoubleQuotedValue]() {
-									goto l123
+									goto l131
 								}
-								add(rulePegText, position124)
+								add(rulePegText, position132)
 							}
 							if !_rules[ruleDoubleQuote]() {
-								goto l123
+								goto l131
 							}
-							goto l120
-						l123:
-							position, tokenIndex = position120, tokenIndex120
+							goto l128
+						l131:
+							position, tokenIndex = position128, tokenIndex128
 							if buffer[position] != rune('@') {
-								goto l118
+								goto l126
 							}
 							position++
 							if !_rules[ruleSingleQuote]() {
-								goto l118
+								goto l126
 							}
 							{
-								position125 := position
+								position133 := position
 								if !_rules[ruleSingleQuotedValue]() {
-									goto l118
+									goto l126
 								}
-								add(rulePegText, position125)
+								add(rulePegText, position133)
 							}
 							if !_rules[ruleSingleQuote]() {
-								goto l118
+								goto l126
 							}
 						}
-					l120:
-						add(ruleAliasValue, position119)
+					l128:
+						add(ruleAliasValue, position127)
 					}
 					{
 						add(ruleAction8, position)
 					}
-					goto l117
-				l118:
-					position, tokenIndex = position117, tokenIndex117
+					goto l125
+				l126:
+					position, tokenIndex = position125, tokenIndex125
 					if !_rules[ruleDoubleQuote]() {
-						goto l127
+						goto l135
 					}
 					if !_rules[ruleCustomTypedValue]() {
-						goto l127
+						goto l135
 					}
 					if !_rules[ruleDoubleQuote]() {
-						goto l127
+						goto l135
 					}
-					goto l117
-				l127:
-					position, tokenIndex = position117, tokenIndex117
+					goto l125
+				l135:
+					position, tokenIndex = position125, tokenIndex125
 					if !_rules[ruleSingleQuote]() {
-						goto l128
+						goto l136
 					}
 					if !_rules[ruleCustomTypedValue]() {
-						goto l128
+						goto l136
 					}
 					if !_rules[ruleSingleQuote]() {
-						goto l128
+						goto l136
 					}
-					goto l117
-				l128:
-					position, tokenIndex = position117, tokenIndex117
+					goto l125
+				l136:
+					position, tokenIndex = position125, tokenIndex125
 					if !_rules[ruleCustomTypedValue]() {
-						goto l129
+						goto l137
 					}
-					goto l117
-				l129:
-					position, tokenIndex = position117, tokenIndex117
+					goto l125
+				l137:
+					position, tokenIndex = position125, tokenIndex125
 					{
 						switch buffer[position] {
 						case '\'':
 							if !_rules[ruleSingleQuote]() {
-								goto l115
+								goto l123
 							}
 							{
-								position131 := position
+								position139 := position
 								if !_rules[ruleSingleQuotedValue]() {
-									goto l115
+									goto l123
 								}
-								add(rulePegText, position131)
+								add(rulePegText, position139)
 							}
 							{
 								add(ruleAction10, position)
 							}
 							if !_rules[ruleSingleQuote]() {
-								goto l115
+								goto l123
 							}
 							break
 						case '"':
 							if !_rules[ruleDoubleQuote]() {
-								goto l115
+								goto l123
 							}
 							{
-								position133 := position
+								position141 := position
 								if !_rules[ruleDoubleQuotedValue]() {
-									goto l115
+									goto l123
 								}
-								add(rulePegText, position133)
+								add(rulePegText, position141)
 							}
 							{
 								add(ruleAction9, position)
 							}
 							if !_rules[ruleDoubleQuote]() {
-								goto l115
+								goto l123
 							}
 							break
 						case '{':
 							{
-								position135 := position
+								position143 := position
 								if buffer[position] != rune('{') {
-									goto l115
+									goto l123
 								}
 								position++
 								if !_rules[ruleWhiteSpacing]() {
-									goto l115
+									goto l123
 								}
 								{
-									position136 := position
+									position144 := position
 									if !_rules[ruleIdentifier]() {
-										goto l115
+										goto l123
 									}
-									add(rulePegText, position136)
+									add(rulePegText, position144)
 								}
 								if !_rules[ruleWhiteSpacing]() {
-									goto l115
+									goto l123
 								}
 								if buffer[position] != rune('}') {
-									goto l115
+									goto l123
 								}
 								position++
-								add(ruleHoleValue, position135)
+								add(ruleHoleValue, position143)
 							}
 							{
 								add(ruleAction7, position)
@@ -1297,11 +1391,11 @@ func (p *Peg) Init() {
 							break
 						default:
 							{
-								position138 := position
+								position146 := position
 								if !_rules[ruleOtherParamValue]() {
-									goto l115
+									goto l123
 								}
-								add(rulePegText, position138)
+								add(rulePegText, position146)
 							}
 							{
 								add(ruleAction11, position)
@@ -1311,105 +1405,29 @@ func (p *Peg) Init() {
 					}
 
 				}
-			l117:
-				add(ruleNoRefValue, position116)
+			l125:
+				add(ruleNoRefValue, position124)
 			}
 			return true
-		l115:
-			position, tokenIndex = position115, tokenIndex115
+		l123:
+			position, tokenIndex = position123, tokenIndex123
 			return false
 		},
-		/* 11 Value <- <((RefValue Action12) / NoRefValue)> */
+		/* 11 Value <- <((&('[') (RefsListValue Action13)) | (&('$') (RefValue Action12)) | (&('"' | '\'' | '*' | '+' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '>' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '~') NoRefValue))> */
 		nil,
-		/* 12 CustomTypedValue <- <((<CidrValue> Action13) / (<IpValue> Action14) / (<CSVValue> Action15) / (<IntRangeValue> Action16))> */
+		/* 12 CustomTypedValue <- <((<CidrValue> Action14) / (<IpValue> Action15) / (<CSVValue> Action16) / (<IntRangeValue> Action17))> */
 		func() bool {
-			position141, tokenIndex141 := position, tokenIndex
+			position149, tokenIndex149 := position, tokenIndex
 			{
-				position142 := position
+				position150 := position
 				{
-					position143, tokenIndex143 := position, tokenIndex
+					position151, tokenIndex151 := position, tokenIndex
 					{
-						position145 := position
+						position153 := position
 						{
-							position146 := position
+							position154 := position
 							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l144
-							}
-							position++
-						l147:
-							{
-								position148, tokenIndex148 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l148
-								}
-								position++
-								goto l147
-							l148:
-								position, tokenIndex = position148, tokenIndex148
-							}
-							if buffer[position] != rune('.') {
-								goto l144
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l144
-							}
-							position++
-						l149:
-							{
-								position150, tokenIndex150 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l150
-								}
-								position++
-								goto l149
-							l150:
-								position, tokenIndex = position150, tokenIndex150
-							}
-							if buffer[position] != rune('.') {
-								goto l144
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l144
-							}
-							position++
-						l151:
-							{
-								position152, tokenIndex152 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l152
-								}
-								position++
-								goto l151
-							l152:
-								position, tokenIndex = position152, tokenIndex152
-							}
-							if buffer[position] != rune('.') {
-								goto l144
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l144
-							}
-							position++
-						l153:
-							{
-								position154, tokenIndex154 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l154
-								}
-								position++
-								goto l153
-							l154:
-								position, tokenIndex = position154, tokenIndex154
-							}
-							if buffer[position] != rune('/') {
-								goto l144
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l144
+								goto l152
 							}
 							position++
 						l155:
@@ -1423,22 +1441,50 @@ func (p *Peg) Init() {
 							l156:
 								position, tokenIndex = position156, tokenIndex156
 							}
-							add(ruleCidrValue, position146)
-						}
-						add(rulePegText, position145)
-					}
-					{
-						add(ruleAction13, position)
-					}
-					goto l143
-				l144:
-					position, tokenIndex = position143, tokenIndex143
-					{
-						position159 := position
-						{
-							position160 := position
+							if buffer[position] != rune('.') {
+								goto l152
+							}
+							position++
 							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l158
+								goto l152
+							}
+							position++
+						l157:
+							{
+								position158, tokenIndex158 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l158
+								}
+								position++
+								goto l157
+							l158:
+								position, tokenIndex = position158, tokenIndex158
+							}
+							if buffer[position] != rune('.') {
+								goto l152
+							}
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l152
+							}
+							position++
+						l159:
+							{
+								position160, tokenIndex160 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l160
+								}
+								position++
+								goto l159
+							l160:
+								position, tokenIndex = position160, tokenIndex160
+							}
+							if buffer[position] != rune('.') {
+								goto l152
+							}
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l152
 							}
 							position++
 						l161:
@@ -1452,12 +1498,12 @@ func (p *Peg) Init() {
 							l162:
 								position, tokenIndex = position162, tokenIndex162
 							}
-							if buffer[position] != rune('.') {
-								goto l158
+							if buffer[position] != rune('/') {
+								goto l152
 							}
 							position++
 							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l158
+								goto l152
 							}
 							position++
 						l163:
@@ -1471,420 +1517,468 @@ func (p *Peg) Init() {
 							l164:
 								position, tokenIndex = position164, tokenIndex164
 							}
-							if buffer[position] != rune('.') {
-								goto l158
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l158
-							}
-							position++
-						l165:
-							{
-								position166, tokenIndex166 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l166
-								}
-								position++
-								goto l165
-							l166:
-								position, tokenIndex = position166, tokenIndex166
-							}
-							if buffer[position] != rune('.') {
-								goto l158
-							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l158
-							}
-							position++
-						l167:
-							{
-								position168, tokenIndex168 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l168
-								}
-								position++
-								goto l167
-							l168:
-								position, tokenIndex = position168, tokenIndex168
-							}
-							add(ruleIpValue, position160)
+							add(ruleCidrValue, position154)
 						}
-						add(rulePegText, position159)
+						add(rulePegText, position153)
 					}
 					{
 						add(ruleAction14, position)
 					}
-					goto l143
-				l158:
-					position, tokenIndex = position143, tokenIndex143
+					goto l151
+				l152:
+					position, tokenIndex = position151, tokenIndex151
 					{
-						position171 := position
+						position167 := position
 						{
-							position172 := position
-							if !_rules[ruleOtherParamValue]() {
-								goto l170
-							}
-							if !_rules[ruleWhiteSpacing]() {
-								goto l170
-							}
-							if buffer[position] != rune(',') {
-								goto l170
+							position168 := position
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l166
 							}
 							position++
-							if !_rules[ruleWhiteSpacing]() {
-								goto l170
+						l169:
+							{
+								position170, tokenIndex170 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l170
+								}
+								position++
+								goto l169
+							l170:
+								position, tokenIndex = position170, tokenIndex170
 							}
+							if buffer[position] != rune('.') {
+								goto l166
+							}
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l166
+							}
+							position++
+						l171:
+							{
+								position172, tokenIndex172 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l172
+								}
+								position++
+								goto l171
+							l172:
+								position, tokenIndex = position172, tokenIndex172
+							}
+							if buffer[position] != rune('.') {
+								goto l166
+							}
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l166
+							}
+							position++
 						l173:
 							{
 								position174, tokenIndex174 := position, tokenIndex
-								if !_rules[ruleOtherParamValue]() {
-									goto l174
-								}
-								if !_rules[ruleWhiteSpacing]() {
-									goto l174
-								}
-								if buffer[position] != rune(',') {
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
 									goto l174
 								}
 								position++
-								if !_rules[ruleWhiteSpacing]() {
-									goto l174
-								}
 								goto l173
 							l174:
 								position, tokenIndex = position174, tokenIndex174
 							}
-							if !_rules[ruleOtherParamValue]() {
-								goto l170
+							if buffer[position] != rune('.') {
+								goto l166
 							}
-							add(ruleCSVValue, position172)
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l166
+							}
+							position++
+						l175:
+							{
+								position176, tokenIndex176 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l176
+								}
+								position++
+								goto l175
+							l176:
+								position, tokenIndex = position176, tokenIndex176
+							}
+							add(ruleIpValue, position168)
 						}
-						add(rulePegText, position171)
+						add(rulePegText, position167)
 					}
 					{
 						add(ruleAction15, position)
 					}
-					goto l143
-				l170:
-					position, tokenIndex = position143, tokenIndex143
+					goto l151
+				l166:
+					position, tokenIndex = position151, tokenIndex151
 					{
-						position176 := position
+						position179 := position
 						{
-							position177 := position
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l141
-							}
-							position++
-						l178:
-							{
-								position179, tokenIndex179 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l179
-								}
-								position++
+							position180 := position
+							if !_rules[ruleOtherParamValue]() {
 								goto l178
-							l179:
-								position, tokenIndex = position179, tokenIndex179
 							}
-							if buffer[position] != rune('-') {
-								goto l141
+							if !_rules[ruleWhiteSpacing]() {
+								goto l178
 							}
-							position++
-							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l141
+							if buffer[position] != rune(',') {
+								goto l178
 							}
 							position++
-						l180:
+							if !_rules[ruleWhiteSpacing]() {
+								goto l178
+							}
+						l181:
 							{
-								position181, tokenIndex181 := position, tokenIndex
-								if c := buffer[position]; c < rune('0') || c > rune('9') {
-									goto l181
+								position182, tokenIndex182 := position, tokenIndex
+								if !_rules[ruleOtherParamValue]() {
+									goto l182
+								}
+								if !_rules[ruleWhiteSpacing]() {
+									goto l182
+								}
+								if buffer[position] != rune(',') {
+									goto l182
 								}
 								position++
-								goto l180
-							l181:
-								position, tokenIndex = position181, tokenIndex181
+								if !_rules[ruleWhiteSpacing]() {
+									goto l182
+								}
+								goto l181
+							l182:
+								position, tokenIndex = position182, tokenIndex182
 							}
-							add(ruleIntRangeValue, position177)
+							if !_rules[ruleOtherParamValue]() {
+								goto l178
+							}
+							add(ruleCSVValue, position180)
 						}
-						add(rulePegText, position176)
+						add(rulePegText, position179)
 					}
 					{
 						add(ruleAction16, position)
 					}
+					goto l151
+				l178:
+					position, tokenIndex = position151, tokenIndex151
+					{
+						position184 := position
+						{
+							position185 := position
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l149
+							}
+							position++
+						l186:
+							{
+								position187, tokenIndex187 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l187
+								}
+								position++
+								goto l186
+							l187:
+								position, tokenIndex = position187, tokenIndex187
+							}
+							if buffer[position] != rune('-') {
+								goto l149
+							}
+							position++
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
+								goto l149
+							}
+							position++
+						l188:
+							{
+								position189, tokenIndex189 := position, tokenIndex
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
+									goto l189
+								}
+								position++
+								goto l188
+							l189:
+								position, tokenIndex = position189, tokenIndex189
+							}
+							add(ruleIntRangeValue, position185)
+						}
+						add(rulePegText, position184)
+					}
+					{
+						add(ruleAction17, position)
+					}
 				}
-			l143:
-				add(ruleCustomTypedValue, position142)
+			l151:
+				add(ruleCustomTypedValue, position150)
 			}
 			return true
-		l141:
-			position, tokenIndex = position141, tokenIndex141
+		l149:
+			position, tokenIndex = position149, tokenIndex149
 			return false
 		},
 		/* 13 OtherParamValue <- <((&('*') '*') | (&('>') '>') | (&('<') '<') | (&('@') '@') | (&('~') '~') | (&(';') ';') | (&('+') '+') | (&('/') '/') | (&(':') ':') | (&('_') '_') | (&('.') '.') | (&('-') '-') | (&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') [0-9]) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z') [A-Z]) | (&('a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z') [a-z]))+> */
 		func() bool {
-			position183, tokenIndex183 := position, tokenIndex
+			position191, tokenIndex191 := position, tokenIndex
 			{
-				position184 := position
+				position192 := position
 				{
 					switch buffer[position] {
 					case '*':
 						if buffer[position] != rune('*') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '>':
 						if buffer[position] != rune('>') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '<':
 						if buffer[position] != rune('<') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '@':
 						if buffer[position] != rune('@') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '~':
 						if buffer[position] != rune('~') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case ';':
 						if buffer[position] != rune(';') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '+':
 						if buffer[position] != rune('+') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '/':
 						if buffer[position] != rune('/') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case ':':
 						if buffer[position] != rune(':') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '_':
 						if buffer[position] != rune('_') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '.':
 						if buffer[position] != rune('.') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '-':
 						if buffer[position] != rune('-') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 						if c := buffer[position]; c < rune('0') || c > rune('9') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
 						if c := buffer[position]; c < rune('A') || c > rune('Z') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					default:
 						if c := buffer[position]; c < rune('a') || c > rune('z') {
-							goto l183
+							goto l191
 						}
 						position++
 						break
 					}
 				}
 
-			l185:
+			l193:
 				{
-					position186, tokenIndex186 := position, tokenIndex
+					position194, tokenIndex194 := position, tokenIndex
 					{
 						switch buffer[position] {
 						case '*':
 							if buffer[position] != rune('*') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '>':
 							if buffer[position] != rune('>') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '<':
 							if buffer[position] != rune('<') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '@':
 							if buffer[position] != rune('@') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '~':
 							if buffer[position] != rune('~') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case ';':
 							if buffer[position] != rune(';') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '+':
 							if buffer[position] != rune('+') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '/':
 							if buffer[position] != rune('/') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case ':':
 							if buffer[position] != rune(':') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '_':
 							if buffer[position] != rune('_') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '.':
 							if buffer[position] != rune('.') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '-':
 							if buffer[position] != rune('-') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 							if c := buffer[position]; c < rune('0') || c > rune('9') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
 							if c := buffer[position]; c < rune('A') || c > rune('Z') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						default:
 							if c := buffer[position]; c < rune('a') || c > rune('z') {
-								goto l186
+								goto l194
 							}
 							position++
 							break
 						}
 					}
 
-					goto l185
-				l186:
-					position, tokenIndex = position186, tokenIndex186
+					goto l193
+				l194:
+					position, tokenIndex = position194, tokenIndex194
 				}
-				add(ruleOtherParamValue, position184)
+				add(ruleOtherParamValue, position192)
 			}
 			return true
-		l183:
-			position, tokenIndex = position183, tokenIndex183
+		l191:
+			position, tokenIndex = position191, tokenIndex191
 			return false
 		},
 		/* 14 DoubleQuotedValue <- <(!'"' .)*> */
 		func() bool {
 			{
-				position190 := position
-			l191:
+				position198 := position
+			l199:
 				{
-					position192, tokenIndex192 := position, tokenIndex
+					position200, tokenIndex200 := position, tokenIndex
 					{
-						position193, tokenIndex193 := position, tokenIndex
+						position201, tokenIndex201 := position, tokenIndex
 						if buffer[position] != rune('"') {
-							goto l193
+							goto l201
 						}
 						position++
-						goto l192
-					l193:
-						position, tokenIndex = position193, tokenIndex193
+						goto l200
+					l201:
+						position, tokenIndex = position201, tokenIndex201
 					}
 					if !matchDot() {
-						goto l192
+						goto l200
 					}
-					goto l191
-				l192:
-					position, tokenIndex = position192, tokenIndex192
+					goto l199
+				l200:
+					position, tokenIndex = position200, tokenIndex200
 				}
-				add(ruleDoubleQuotedValue, position190)
+				add(ruleDoubleQuotedValue, position198)
 			}
 			return true
 		},
 		/* 15 SingleQuotedValue <- <(!'\'' .)*> */
 		func() bool {
 			{
-				position195 := position
-			l196:
+				position203 := position
+			l204:
 				{
-					position197, tokenIndex197 := position, tokenIndex
+					position205, tokenIndex205 := position, tokenIndex
 					{
-						position198, tokenIndex198 := position, tokenIndex
+						position206, tokenIndex206 := position, tokenIndex
 						if buffer[position] != rune('\'') {
-							goto l198
+							goto l206
 						}
 						position++
-						goto l197
-					l198:
-						position, tokenIndex = position198, tokenIndex198
+						goto l205
+					l206:
+						position, tokenIndex = position206, tokenIndex206
 					}
 					if !matchDot() {
-						goto l197
+						goto l205
 					}
-					goto l196
-				l197:
-					position, tokenIndex = position197, tokenIndex197
+					goto l204
+				l205:
+					position, tokenIndex = position205, tokenIndex205
 				}
-				add(ruleSingleQuotedValue, position195)
+				add(ruleSingleQuotedValue, position203)
 			}
 			return true
 		},
@@ -1897,236 +1991,261 @@ func (p *Peg) Init() {
 		/* 19 IntRangeValue <- <([0-9]+ '-' [0-9]+)> */
 		nil,
 		/* 20 RefValue <- <('$' <Identifier>)> */
-		nil,
-		/* 21 AliasValue <- <(('@' <OtherParamValue>) / ('@' DoubleQuote <DoubleQuotedValue> DoubleQuote) / ('@' SingleQuote <SingleQuotedValue> SingleQuote))> */
-		nil,
-		/* 22 HoleValue <- <('{' WhiteSpacing <Identifier> WhiteSpacing '}')> */
-		nil,
-		/* 23 Comment <- <(('#' (!EndOfLine .)*) / ('/' '/' (!EndOfLine .)* Action17))> */
-		nil,
-		/* 24 SingleQuote <- <'\''> */
 		func() bool {
-			position207, tokenIndex207 := position, tokenIndex
-			{
-				position208 := position
-				if buffer[position] != rune('\'') {
-					goto l207
-				}
-				position++
-				add(ruleSingleQuote, position208)
-			}
-			return true
-		l207:
-			position, tokenIndex = position207, tokenIndex207
-			return false
-		},
-		/* 25 DoubleQuote <- <'"'> */
-		func() bool {
-			position209, tokenIndex209 := position, tokenIndex
-			{
-				position210 := position
-				if buffer[position] != rune('"') {
-					goto l209
-				}
-				position++
-				add(ruleDoubleQuote, position210)
-			}
-			return true
-		l209:
-			position, tokenIndex = position209, tokenIndex209
-			return false
-		},
-		/* 26 WhiteSpacing <- <Whitespace*> */
-		func() bool {
+			position211, tokenIndex211 := position, tokenIndex
 			{
 				position212 := position
-			l213:
-				{
-					position214, tokenIndex214 := position, tokenIndex
-					if !_rules[ruleWhitespace]() {
-						goto l214
-					}
-					goto l213
-				l214:
-					position, tokenIndex = position214, tokenIndex214
+				if buffer[position] != rune('$') {
+					goto l211
 				}
-				add(ruleWhiteSpacing, position212)
+				position++
+				{
+					position213 := position
+					if !_rules[ruleIdentifier]() {
+						goto l211
+					}
+					add(rulePegText, position213)
+				}
+				add(ruleRefValue, position212)
 			}
 			return true
-		},
-		/* 27 MustWhiteSpacing <- <Whitespace+> */
-		func() bool {
-			position215, tokenIndex215 := position, tokenIndex
-			{
-				position216 := position
-				if !_rules[ruleWhitespace]() {
-					goto l215
-				}
-			l217:
-				{
-					position218, tokenIndex218 := position, tokenIndex
-					if !_rules[ruleWhitespace]() {
-						goto l218
-					}
-					goto l217
-				l218:
-					position, tokenIndex = position218, tokenIndex218
-				}
-				add(ruleMustWhiteSpacing, position216)
-			}
-			return true
-		l215:
-			position, tokenIndex = position215, tokenIndex215
+		l211:
+			position, tokenIndex = position211, tokenIndex211
 			return false
 		},
-		/* 28 Equal <- <(WhiteSpacing '=' WhiteSpacing)> */
+		/* 21 RefsListValue <- <('[' <(WhiteSpacing RefValue+ (',' WhiteSpacing RefValue)*)> ']')> */
+		nil,
+		/* 22 AliasValue <- <(('@' <OtherParamValue>) / ('@' DoubleQuote <DoubleQuotedValue> DoubleQuote) / ('@' SingleQuote <SingleQuotedValue> SingleQuote))> */
+		nil,
+		/* 23 HoleValue <- <('{' WhiteSpacing <Identifier> WhiteSpacing '}')> */
+		nil,
+		/* 24 Comment <- <(('#' (!EndOfLine .)*) / ('/' '/' (!EndOfLine .)* Action18))> */
+		nil,
+		/* 25 SingleQuote <- <'\''> */
 		func() bool {
-			position219, tokenIndex219 := position, tokenIndex
+			position218, tokenIndex218 := position, tokenIndex
 			{
-				position220 := position
+				position219 := position
+				if buffer[position] != rune('\'') {
+					goto l218
+				}
+				position++
+				add(ruleSingleQuote, position219)
+			}
+			return true
+		l218:
+			position, tokenIndex = position218, tokenIndex218
+			return false
+		},
+		/* 26 DoubleQuote <- <'"'> */
+		func() bool {
+			position220, tokenIndex220 := position, tokenIndex
+			{
+				position221 := position
+				if buffer[position] != rune('"') {
+					goto l220
+				}
+				position++
+				add(ruleDoubleQuote, position221)
+			}
+			return true
+		l220:
+			position, tokenIndex = position220, tokenIndex220
+			return false
+		},
+		/* 27 WhiteSpacing <- <Whitespace*> */
+		func() bool {
+			{
+				position223 := position
+			l224:
+				{
+					position225, tokenIndex225 := position, tokenIndex
+					if !_rules[ruleWhitespace]() {
+						goto l225
+					}
+					goto l224
+				l225:
+					position, tokenIndex = position225, tokenIndex225
+				}
+				add(ruleWhiteSpacing, position223)
+			}
+			return true
+		},
+		/* 28 MustWhiteSpacing <- <Whitespace+> */
+		func() bool {
+			position226, tokenIndex226 := position, tokenIndex
+			{
+				position227 := position
+				if !_rules[ruleWhitespace]() {
+					goto l226
+				}
+			l228:
+				{
+					position229, tokenIndex229 := position, tokenIndex
+					if !_rules[ruleWhitespace]() {
+						goto l229
+					}
+					goto l228
+				l229:
+					position, tokenIndex = position229, tokenIndex229
+				}
+				add(ruleMustWhiteSpacing, position227)
+			}
+			return true
+		l226:
+			position, tokenIndex = position226, tokenIndex226
+			return false
+		},
+		/* 29 Equal <- <(WhiteSpacing '=' WhiteSpacing)> */
+		func() bool {
+			position230, tokenIndex230 := position, tokenIndex
+			{
+				position231 := position
 				if !_rules[ruleWhiteSpacing]() {
-					goto l219
+					goto l230
 				}
 				if buffer[position] != rune('=') {
-					goto l219
+					goto l230
 				}
 				position++
 				if !_rules[ruleWhiteSpacing]() {
-					goto l219
+					goto l230
 				}
-				add(ruleEqual, position220)
+				add(ruleEqual, position231)
 			}
 			return true
-		l219:
-			position, tokenIndex = position219, tokenIndex219
+		l230:
+			position, tokenIndex = position230, tokenIndex230
 			return false
 		},
-		/* 29 BlankLine <- <(WhiteSpacing EndOfLine Action18)> */
+		/* 30 BlankLine <- <(WhiteSpacing EndOfLine Action19)> */
 		func() bool {
-			position221, tokenIndex221 := position, tokenIndex
+			position232, tokenIndex232 := position, tokenIndex
 			{
-				position222 := position
+				position233 := position
 				if !_rules[ruleWhiteSpacing]() {
-					goto l221
+					goto l232
 				}
 				if !_rules[ruleEndOfLine]() {
-					goto l221
+					goto l232
 				}
 				{
-					add(ruleAction18, position)
+					add(ruleAction19, position)
 				}
-				add(ruleBlankLine, position222)
+				add(ruleBlankLine, position233)
 			}
 			return true
-		l221:
-			position, tokenIndex = position221, tokenIndex221
+		l232:
+			position, tokenIndex = position232, tokenIndex232
 			return false
 		},
-		/* 30 Whitespace <- <(' ' / '\t')> */
+		/* 31 Whitespace <- <(' ' / '\t')> */
 		func() bool {
-			position224, tokenIndex224 := position, tokenIndex
+			position235, tokenIndex235 := position, tokenIndex
 			{
-				position225 := position
+				position236 := position
 				{
-					position226, tokenIndex226 := position, tokenIndex
+					position237, tokenIndex237 := position, tokenIndex
 					if buffer[position] != rune(' ') {
-						goto l227
+						goto l238
 					}
 					position++
-					goto l226
-				l227:
-					position, tokenIndex = position226, tokenIndex226
+					goto l237
+				l238:
+					position, tokenIndex = position237, tokenIndex237
 					if buffer[position] != rune('\t') {
-						goto l224
+						goto l235
 					}
 					position++
 				}
-			l226:
-				add(ruleWhitespace, position225)
+			l237:
+				add(ruleWhitespace, position236)
 			}
 			return true
-		l224:
-			position, tokenIndex = position224, tokenIndex224
+		l235:
+			position, tokenIndex = position235, tokenIndex235
 			return false
 		},
-		/* 31 EndOfLine <- <(('\r' '\n') / '\n' / '\r')> */
+		/* 32 EndOfLine <- <(('\r' '\n') / '\n' / '\r')> */
 		func() bool {
-			position228, tokenIndex228 := position, tokenIndex
+			position239, tokenIndex239 := position, tokenIndex
 			{
-				position229 := position
+				position240 := position
 				{
-					position230, tokenIndex230 := position, tokenIndex
+					position241, tokenIndex241 := position, tokenIndex
 					if buffer[position] != rune('\r') {
-						goto l231
+						goto l242
 					}
 					position++
 					if buffer[position] != rune('\n') {
-						goto l231
+						goto l242
 					}
 					position++
-					goto l230
-				l231:
-					position, tokenIndex = position230, tokenIndex230
+					goto l241
+				l242:
+					position, tokenIndex = position241, tokenIndex241
 					if buffer[position] != rune('\n') {
-						goto l232
+						goto l243
 					}
 					position++
-					goto l230
-				l232:
-					position, tokenIndex = position230, tokenIndex230
+					goto l241
+				l243:
+					position, tokenIndex = position241, tokenIndex241
 					if buffer[position] != rune('\r') {
-						goto l228
+						goto l239
 					}
 					position++
 				}
-			l230:
-				add(ruleEndOfLine, position229)
+			l241:
+				add(ruleEndOfLine, position240)
 			}
 			return true
-		l228:
-			position, tokenIndex = position228, tokenIndex228
+		l239:
+			position, tokenIndex = position239, tokenIndex239
 			return false
 		},
-		/* 32 EndOfFile <- <!.> */
+		/* 33 EndOfFile <- <!.> */
 		nil,
 		nil,
-		/* 35 Action0 <- <{ p.addDeclarationIdentifier(text) }> */
+		/* 36 Action0 <- <{ p.addDeclarationIdentifier(text) }> */
 		nil,
-		/* 36 Action1 <- <{ p.addValue() }> */
+		/* 37 Action1 <- <{ p.addValue() }> */
 		nil,
-		/* 37 Action2 <- <{ p.LineDone() }> */
+		/* 38 Action2 <- <{ p.LineDone() }> */
 		nil,
-		/* 38 Action3 <- <{ p.addAction(text) }> */
+		/* 39 Action3 <- <{ p.addAction(text) }> */
 		nil,
-		/* 39 Action4 <- <{ p.addEntity(text) }> */
+		/* 40 Action4 <- <{ p.addEntity(text) }> */
 		nil,
-		/* 40 Action5 <- <{ p.LineDone() }> */
+		/* 41 Action5 <- <{ p.LineDone() }> */
 		nil,
-		/* 41 Action6 <- <{ p.addParamKey(text) }> */
+		/* 42 Action6 <- <{ p.addParamKey(text) }> */
 		nil,
-		/* 42 Action7 <- <{  p.addParamHoleValue(text) }> */
+		/* 43 Action7 <- <{  p.addParamHoleValue(text) }> */
 		nil,
-		/* 43 Action8 <- <{  p.addAliasParam(text) }> */
+		/* 44 Action8 <- <{  p.addAliasParam(text) }> */
 		nil,
-		/* 44 Action9 <- <{ p.addStringValue(text) }> */
+		/* 45 Action9 <- <{ p.addStringValue(text) }> */
 		nil,
-		/* 45 Action10 <- <{ p.addStringValue(text) }> */
+		/* 46 Action10 <- <{ p.addStringValue(text) }> */
 		nil,
-		/* 46 Action11 <- <{ p.addParamValue(text) }> */
+		/* 47 Action11 <- <{ p.addParamValue(text) }> */
 		nil,
-		/* 47 Action12 <- <{  p.addParamRefValue(text) }> */
+		/* 48 Action12 <- <{  p.addParamRefValue(text) }> */
 		nil,
-		/* 48 Action13 <- <{ p.addParamCidrValue(text) }> */
+		/* 49 Action13 <- <{ p.addParamRefsListValue(text) }> */
 		nil,
-		/* 49 Action14 <- <{ p.addParamIpValue(text) }> */
+		/* 50 Action14 <- <{ p.addParamCidrValue(text) }> */
 		nil,
-		/* 50 Action15 <- <{p.addCsvValue(text)}> */
+		/* 51 Action15 <- <{ p.addParamIpValue(text) }> */
 		nil,
-		/* 51 Action16 <- <{ p.addParamValue(text) }> */
+		/* 52 Action16 <- <{p.addCsvValue(text)}> */
 		nil,
-		/* 52 Action17 <- <{ p.LineDone() }> */
+		/* 53 Action17 <- <{ p.addParamValue(text) }> */
 		nil,
-		/* 53 Action18 <- <{ p.LineDone() }> */
+		/* 54 Action18 <- <{ p.LineDone() }> */
+		nil,
+		/* 55 Action19 <- <{ p.LineDone() }> */
 		nil,
 	}
 	p.rules = _rules

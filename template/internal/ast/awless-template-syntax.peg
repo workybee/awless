@@ -35,6 +35,7 @@ NoRefValue <- HoleValue {  p.addParamHoleValue(text) }
         / <OtherParamValue> { p.addParamValue(text) }
 
 Value <- RefValue {  p.addParamRefValue(text) }
+      / RefsListValue { p.addParamRefsListValue(text) } 
       / NoRefValue
         
 CustomTypedValue <- <CidrValue> { p.addParamCidrValue(text) }
@@ -53,6 +54,7 @@ IpValue <- [0-9]+[.][0-9]+[.][0-9]+[.][0-9]+
 IntRangeValue <- [0-9]+'-'[0-9]+
 
 RefValue <- '$'<Identifier>
+RefsListValue <- '['<WhiteSpacing RefValue+ (','WhiteSpacing RefValue)* >']'
 AliasValue <- '@'<OtherParamValue> / '@' DoubleQuote <DoubleQuotedValue> DoubleQuote / '@' SingleQuote <SingleQuotedValue> SingleQuote 
 HoleValue <- '{'WhiteSpacing<Identifier>WhiteSpacing'}'
 

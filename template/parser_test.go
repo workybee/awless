@@ -56,6 +56,46 @@ func TestParseVariousTemplatesCorrectly(t *testing.T) {
 	}
 }
 
+func TestReferencesList(t *testing.T) {
+	t.Run("error cases", func(t *testing.T) {
+		for _, text := range []string{"create database subnets=[]", "create database subnets=[$]", "create database subnets=[$cool,$]"} {
+			if _, err := Parse(text); err == nil {
+				t.Fatalf("parsing '%s' expecting error got none", text)
+			}
+		}
+	})
+
+	t.Run("happy parsing", func(t *testing.T) {
+		tcases := []struct {
+			text         string
+			statementNum int
+			exp          map[string][]string
+		}{
+			{
+				"ref_1 = hello\nref_2 = world\ncreate database subnets=[$ref_1,$ref_2]", 2,
+				map[string][]string{"subnets": {"ref_1", "ref_2"}},
+			},
+			{
+				"only_one = hello\ncreate database subnets=[$only_one]", 1,
+				map[string][]string{"subnets": {"only_one"}},
+			},
+		}
+		for i, tcase := range tcases {
+			tpl, err := Parse(tcase.text)
+			if err != nil {
+				t.Fatalf("%d. %s", i+1, err)
+			}
+			n := tpl.Statements[tcase.statementNum].Node.(*ast.CommandNode)
+			if got, want := n.RefsList, tcase.exp; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got %#v, want %#v", got, want)
+			}
+			if got, want := tpl.String(), tcase.text; got != want {
+				t.Fatalf("got\n%q\n\nwant\n%q", got, want)
+			}
+		}
+	})
+}
+
 func TestStringWithDigitValues(t *testing.T) {
 	tcases := []struct {
 		text      string
