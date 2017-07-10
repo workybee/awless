@@ -28,6 +28,7 @@ type Client struct {
 	Config                  *gossh.ClientConfig
 	IP, User, Keypath       string
 	Port                    int
+	Proxy                   *Client
 	HostKeyCallback         gossh.HostKeyCallback
 	StrictHostKeyChecking   bool
 	InteractiveTerminalFunc func(*gossh.Client) error
@@ -73,7 +74,7 @@ func (c *Client) SetStrictHostKeyChecking(hostKeyChecking bool) {
 	c.StrictHostKeyChecking = hostKeyChecking
 }
 
-func (c *Client) DialWithUsers(usernames ...string) (*Client, error) {
+func (c *Client) DialWithUsers(usernames ...string) error {
 	var err error
 	for _, user := range usernames {
 		c.logger.ExtraVerbosef("trying with user %s", user)
@@ -84,27 +85,65 @@ func (c *Client) DialWithUsers(usernames ...string) (*Client, error) {
 		}
 		client, err := gossh.Dial("tcp", fmt.Sprintf("%s:%d", c.IP, c.Port), &newConfig)
 		if err != nil {
-			return c, err
+			return err
 		} else {
 			c.User = user
 			c.Client = client
-			return c, nil
+			return nil
 		}
 	}
 
-	return nil, fmt.Errorf("unable to authenticate with any of those users %q. Last error: %s", usernames, err)
+	return fmt.Errorf("unable to authenticate with any of those users %q. Last error: %s", usernames, err)
+}
+
+func (c *Client) NewClientWithProxy(destinationHost string, usernames ...string) (*Client, error) {
+	hostport := fmt.Sprintf("%s:22", destinationHost)
+	netConn, err := c.Dial("tcp", hostport)
+	if err != nil {
+		return nil, err
+	}
+	logger.ExtraVerbosef("valid tcp connect from %s to %s", c.IP, destinationHost)
+	for _, user := range usernames {
+		newConfig := *c.Config
+		newConfig.User = user
+		if !c.StrictHostKeyChecking {
+			newConfig.HostKeyCallback = gossh.InsecureIgnoreHostKey()
+		}
+		conn, chans, reqs, err := gossh.NewClientConn(netConn, hostport, &newConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		logger.ExtraVerbosef("connecting successfully to target with user %s", user)
+
+		return &Client{
+			Client: gossh.NewClient(conn, chans, reqs),
+			Proxy:  c,
+			IP:     destinationHost,
+			User:   user,
+			Port:   22,
+			InteractiveTerminalFunc: func(*gossh.Client) error { return nil },
+			logger:                  logger.DiscardLogger,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("Cannot proxy from %s to %s with users %q", c.IP, destinationHost, usernames)
 }
 
 func (c *Client) Connect() error {
 	defer func() {
 		if c.Client != nil {
 			c.Client.Close()
+			if c.Proxy != nil {
+				c.Proxy.Close()
+			}
 		}
 	}()
 
 	args, installed := c.localExec()
 	if installed {
 		c.logger.Infof("Login as '%s' on '%s'; client '%s'\n", c.User, c.IP, args[0])
+		c.logger.ExtraVerbose("running locally %s", args)
 		return syscall.Exec(args[0], args, os.Environ())
 	}
 
@@ -125,6 +164,9 @@ func (c *Client) SSHConfigString(hostname string) string {
 	if c.Port != 22 {
 		extraOpts["Port"] = strconv.Itoa(c.Port)
 	}
+	if c.Proxy != nil {
+		extraOpts["ProxyCommand"] = fmt.Sprintf("ssh %s@%s -W [%%h]:%%p", c.Proxy.User, c.Proxy.IP)
+	}
 
 	params := struct {
 		IP, User, Name string
@@ -133,10 +175,10 @@ func (c *Client) SSHConfigString(hostname string) string {
 
 	template.Must(template.New("ssh_config").Parse(`
 Host {{ .Name }}
-	Hostname {{ .IP }}
-	User {{ .User }}
+  Hostname {{ .IP }}
+  User {{ .User }}
 {{- range $key, $value := .Extra }}
-	{{ $key }} {{ $value -}}
+  {{ $key }} {{ $value -}}
 {{ end -}}
 `)).Execute(&buf, params)
 
@@ -164,6 +206,9 @@ func (c *Client) localExec() ([]string, bool) {
 	}
 	if !c.StrictHostKeyChecking {
 		args = append(args, "-o", "StrictHostKeychecking=no")
+	}
+	if c.Proxy != nil {
+		args = append(args, "-o", fmt.Sprintf("ProxyCommand='ssh %s@%s -W [%%h]:%%p'", c.Proxy.User, c.Proxy.IP))
 	}
 
 	return args, exists
