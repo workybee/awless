@@ -17,10 +17,10 @@ type FetchResult struct {
 	ResourceType string
 	Err          error
 	Resources    []*graph.Resource
-	Objects      []interface{}
+	Objects      interface{}
 }
 
-type Func func(context.Context) ([]*graph.Resource, []interface{}, error)
+type Func func(context.Context) ([]*graph.Resource, interface{}, error)
 
 type Funcs map[string]Func
 
@@ -89,8 +89,8 @@ func (f *fetcher) FetchByType(ctx context.Context, resourceType string) (*graph.
 
 func (f *fetcher) fetchResource(ctx context.Context, resourceType string, results chan<- FetchResult) {
 	var err error
+	var objects interface{}
 	resources := make([]*graph.Resource, 0)
-	objects := make([]interface{}, 0)
 
 	fn, ok := f.fetchFuncs[resourceType]
 	if ok {

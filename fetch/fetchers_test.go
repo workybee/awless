@@ -19,14 +19,12 @@ func TestFetcher(t *testing.T) {
 		graph.InitResource("subnet", "sub_2"),
 	}
 	funcs := map[string]fetch.Func{
-		"instance": func(context.Context) ([]*graph.Resource, []interface{}, error) { return instances, nil, nil },
-		"subnet":   func(context.Context) ([]*graph.Resource, []interface{}, error) { return subnets, nil, nil },
+		"instance": func(context.Context) ([]*graph.Resource, interface{}, error) { return instances, nil, nil },
+		"subnet":   func(context.Context) ([]*graph.Resource, interface{}, error) { return subnets, nil, nil },
 	}
 
-	ftchr := fetch.NewFetcher(funcs)
-
 	t.Run("fetch all", func(t *testing.T) {
-		gph, err := ftchr.Fetch(context.Background())
+		gph, err := fetch.NewFetcher(funcs).Fetch(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -45,7 +43,7 @@ func TestFetcher(t *testing.T) {
 	})
 
 	t.Run("fetch by type", func(t *testing.T) {
-		gph, err := ftchr.FetchByType(context.Background(), "instance")
+		gph, err := fetch.NewFetcher(funcs).FetchByType(context.Background(), "instance")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -64,7 +62,7 @@ func TestFetcher(t *testing.T) {
 	})
 
 	t.Run("fetch unexisting type", func(t *testing.T) {
-		gph, err := ftchr.FetchByType(context.Background(), "unexisting")
+		gph, err := fetch.NewFetcher(funcs).FetchByType(context.Background(), "unexisting")
 		if err == nil {
 			t.Fatal(err)
 		}
@@ -76,7 +74,7 @@ func TestFetcher(t *testing.T) {
 	t.Run("fetch when fetchfunc returns nils", func(t *testing.T) {
 		f := fetch.NewFetcher(
 			fetch.Funcs{
-				"nils": func(context.Context) ([]*graph.Resource, []interface{}, error) { return nil, nil, nil },
+				"nils": func(context.Context) ([]*graph.Resource, interface{}, error) { return nil, nil, nil },
 			},
 		)
 
@@ -92,7 +90,7 @@ func TestFetcher(t *testing.T) {
 	t.Run("fetch when fetchfunc returns error", func(t *testing.T) {
 		f := fetch.NewFetcher(
 			fetch.Funcs{
-				"errors": func(context.Context) ([]*graph.Resource, []interface{}, error) {
+				"errors": func(context.Context) ([]*graph.Resource, interface{}, error) {
 					return nil, nil, errors.New("fetch func error")
 				}},
 		)

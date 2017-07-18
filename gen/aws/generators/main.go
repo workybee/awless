@@ -1,6 +1,8 @@
-//go:generate go run $GOFILE drivers.go fetchers.go properties.go paramsdoc.go mocks.go
+//go:generate go run $GOFILE drivers.go fetchers.go properties.go paramsdoc.go mocks.go new_fetchers.go
 //go:generate gofmt -s -w ../../../aws
 //go:generate goimports -w ../../../aws
+//go:generate gofmt -s -w ../../../fetch/aws
+//go:generate goimports -w ../../../fetch/aws
 //go:generate gofmt -s -w ../../../aws/driver
 //go:generate goimports -w ../../../aws/driver
 //go:generate gofmt -s -w ../../../cloud/properties
@@ -30,6 +32,7 @@ func main() {
 
 	// fetchers
 	generateFetcherFuncs()
+	generateNewFetcherFuncs()
 
 	// mocks
 	generateTestMocks()

@@ -168,6 +168,10 @@ func initResource(source interface{}) (*graph.Resource, error) {
 	return res, nil
 }
 
+func NewResource(source interface{}) (*graph.Resource, error) {
+	return newResource(source)
+}
+
 func newResource(source interface{}) (*graph.Resource, error) {
 	res, err := initResource(source)
 	if err != nil {
