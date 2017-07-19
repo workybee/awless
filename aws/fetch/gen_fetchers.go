@@ -42,7 +42,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/wallix/awless/aws"
+	"github.com/wallix/awless/aws/conv"
 	"github.com/wallix/awless/fetch"
 	"github.com/wallix/awless/graph"
 )
@@ -80,7 +80,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 						}
 						objects = append(objects, output)
 						var res *graph.Resource
-						if res, badResErr = aws.NewResource(output); badResErr != nil {
+						if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 							return false
 						}
 						resources = append(resources, res)
@@ -106,7 +106,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.Subnets {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -127,7 +127,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.Vpcs {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -148,7 +148,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.KeyPairs {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -169,7 +169,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.SecurityGroups {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -191,7 +191,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -216,7 +216,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.InternetGateways {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -237,7 +237,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.NatGateways {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -258,7 +258,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.RouteTables {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -279,7 +279,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.AvailabilityZones {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -300,7 +300,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.Images {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -321,7 +321,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.ImportImageTasks {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -342,7 +342,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.Addresses {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -364,7 +364,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -390,7 +390,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -415,7 +415,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 		for _, output := range out.TargetGroups {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -437,7 +437,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -463,7 +463,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -489,7 +489,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -515,7 +515,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -541,7 +541,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -567,7 +567,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -604,7 +604,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -630,7 +630,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -656,7 +656,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -682,7 +682,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -728,7 +728,7 @@ func BuildMessagingFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -754,7 +754,7 @@ func BuildMessagingFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -789,7 +789,7 @@ func BuildDnsFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -824,7 +824,7 @@ func BuildLambdaFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -859,7 +859,7 @@ func BuildMonitoringFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -885,7 +885,7 @@ func BuildMonitoringFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -920,7 +920,7 @@ func BuildCdnFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
@@ -955,7 +955,7 @@ func BuildCloudformationFetchFuncs(sess *session.Session) fetch.Funcs {
 					}
 					objects = append(objects, output)
 					var res *graph.Resource
-					if res, badResErr = aws.NewResource(output); badResErr != nil {
+					if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 						return false
 					}
 					resources = append(resources, res)
