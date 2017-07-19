@@ -144,14 +144,14 @@ func InitResource(source interface{}) (*graph.Resource, error) {
 	case *route53.HostedZone:
 		res = graph.InitResource(cloud.Zone, awssdk.StringValue(ss.Id))
 	case *route53.ResourceRecordSet:
-		id := hashFields(awssdk.StringValue(ss.Name), awssdk.StringValue(ss.Type))
+		id := HashFields(awssdk.StringValue(ss.Name), awssdk.StringValue(ss.Type))
 		res = graph.InitResource(cloud.Record, id)
 		// Lambda
 	case *lambda.FunctionConfiguration:
 		res = graph.InitResource(cloud.Function, awssdk.StringValue(ss.FunctionArn))
 		// Monitoring
 	case *cloudwatch.Metric:
-		id := hashFields(awssdk.StringValue(ss.Namespace), awssdk.StringValue(ss.MetricName))
+		id := HashFields(awssdk.StringValue(ss.Namespace), awssdk.StringValue(ss.MetricName))
 		res = graph.InitResource(cloud.Metric, id)
 	case *cloudwatch.MetricAlarm:
 		res = graph.InitResource(cloud.Alarm, awssdk.StringValue(ss.AlarmArn))
@@ -610,7 +610,7 @@ func notEmpty(str *string) bool {
 	return awssdk.StringValue(str) != ""
 }
 
-func hashFields(fields ...interface{}) string {
+func HashFields(fields ...interface{}) string {
 	var buf bytes.Buffer
 	for _, field := range fields {
 		buf.WriteString(fmt.Sprint(field))
