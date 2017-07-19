@@ -44,7 +44,7 @@ func generateNewFetcherFuncs() {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(filepath.Join(ROOT_DIR, "fetch", "aws"), "gen_fetchers.go"), buff.Bytes(), 0666); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(filepath.Join(ROOT_DIR, "aws", "fetch"), "gen_fetchers.go"), buff.Bytes(), 0666); err != nil {
 		panic(err)
 	}
 }
@@ -85,7 +85,7 @@ import (
   {{- end }}
   "github.com/wallix/awless/fetch"
   "github.com/wallix/awless/graph"
-  "github.com/wallix/awless/aws"
+  "github.com/wallix/awless/aws/conv"
 )
 
 {{- range $index, $service := . }}
@@ -118,7 +118,7 @@ func Build{{ Title $service.Name }}FetchFuncs(sess *session.Session) fetch.Funcs
 						}
 						objects = append(objects, output)
 						var res *graph.Resource
-						if res, badResErr = aws.NewResource(output); badResErr != nil {
+						if res, badResErr = awsconv.NewResource(output); badResErr != nil {
 							return false
 						}
 						resources = append(resources, res)
@@ -142,7 +142,7 @@ func Build{{ Title $service.Name }}FetchFuncs(sess *session.Session) fetch.Funcs
 
 		for _, output := range out.{{ $fetcher.OutputsExtractor }} {
 			objects = append(objects, output)
-			res, err := aws.NewResource(output)
+			res, err := awsconv.NewResource(output)
 			if err != nil {
 				return resources, objects, err
 			}

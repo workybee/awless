@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package aws
+package awsconv
 
 import (
 	"bytes"
@@ -41,7 +41,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/wallix/awless/cloud"
 	"github.com/wallix/awless/cloud/properties"
@@ -49,10 +48,6 @@ import (
 )
 
 func InitResource(source interface{}) (*graph.Resource, error) {
-	return initResource(source)
-}
-
-func initResource(source interface{}) (*graph.Resource, error) {
 	var res *graph.Resource
 	switch ss := source.(type) {
 	// EC2
@@ -173,11 +168,7 @@ func initResource(source interface{}) (*graph.Resource, error) {
 }
 
 func NewResource(source interface{}) (*graph.Resource, error) {
-	return newResource(source)
-}
-
-func newResource(source interface{}) (*graph.Resource, error) {
-	res, err := initResource(source)
+	res, err := InitResource(source)
 	if err != nil {
 		return res, err
 	}
@@ -552,38 +543,7 @@ var extractHasATrueBoolInStructSliceFn = func(key string) transformFn {
 }
 
 var fetchAndExtractGrantsFn = func(i interface{}) (interface{}, error) {
-	b, ok := i.(*s3.Bucket)
-	if !ok {
-		return nil, fmt.Errorf("fetch grants: not a bucket but a %T", i)
-	}
-
-	acls, err := StorageService.(s3iface.S3API).GetBucketAcl(&s3.GetBucketAclInput{Bucket: b.Name})
-	if err != nil {
-		return nil, err
-	}
-	var grants []*graph.Grant
-	for _, acl := range acls.Grants {
-		displayName := awssdk.StringValue(acl.Grantee.DisplayName)
-		granteeType := awssdk.StringValue(acl.Grantee.Type)
-		granteeId := awssdk.StringValue(acl.Grantee.ID)
-
-		if awssdk.StringValue(acl.Grantee.EmailAddress) != "" {
-			displayName += "<" + awssdk.StringValue(acl.Grantee.EmailAddress) + ">"
-		}
-		if granteeType == "Group" {
-			granteeId += awssdk.StringValue(acl.Grantee.URI)
-		}
-		grant := &graph.Grant{
-			Permission: awssdk.StringValue(acl.Permission),
-			Grantee: graph.Grantee{
-				GranteeID:          granteeId,
-				GranteeType:        granteeType,
-				GranteeDisplayName: displayName,
-			},
-		}
-		grants = append(grants, grant)
-	}
-	return grants, nil
+	return []*graph.Grant{}, nil
 }
 
 var extractDistributionOriginFn = func(i interface{}) (interface{}, error) {
