@@ -67,7 +67,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualInfraFetchFuncs(sess, funcs)
 
-	funcs["instance"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["instance"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Instance
 		var badResErr error
@@ -95,7 +95,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["subnet"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["subnet"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Subnet
 
@@ -116,7 +116,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["vpc"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["vpc"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Vpc
 
@@ -137,7 +137,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["keypair"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["keypair"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.KeyPairInfo
 
@@ -158,7 +158,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["securitygroup"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["securitygroup"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.SecurityGroup
 
@@ -179,7 +179,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["volume"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["volume"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Volume
 		var badResErr error
@@ -205,7 +205,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["internetgateway"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["internetgateway"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.InternetGateway
 
@@ -226,7 +226,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["natgateway"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["natgateway"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.NatGateway
 
@@ -247,7 +247,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["routetable"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["routetable"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.RouteTable
 
@@ -268,7 +268,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["availabilityzone"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["availabilityzone"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.AvailabilityZone
 
@@ -289,7 +289,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["image"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["image"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Image
 
@@ -310,7 +310,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["importimagetask"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["importimagetask"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.ImportImageTask
 
@@ -331,7 +331,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["elasticip"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["elasticip"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Address
 
@@ -352,7 +352,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["snapshot"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["snapshot"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ec2.Snapshot
 		var badResErr error
@@ -378,7 +378,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["loadbalancer"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["loadbalancer"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*elbv2.LoadBalancer
 		var badResErr error
@@ -404,7 +404,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["targetgroup"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["targetgroup"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*elbv2.TargetGroup
 
@@ -425,7 +425,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, nil
 	}
 
-	funcs["database"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["database"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*rds.DBInstance
 		var badResErr error
@@ -451,7 +451,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["dbsubnetgroup"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["dbsubnetgroup"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*rds.DBSubnetGroup
 		var badResErr error
@@ -477,7 +477,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["launchconfiguration"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["launchconfiguration"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*autoscaling.LaunchConfiguration
 		var badResErr error
@@ -503,7 +503,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["scalinggroup"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["scalinggroup"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*autoscaling.Group
 		var badResErr error
@@ -529,7 +529,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["scalingpolicy"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["scalingpolicy"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*autoscaling.ScalingPolicy
 		var badResErr error
@@ -555,7 +555,7 @@ func BuildInfraFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["repository"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["repository"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ecr.Repository
 		var badResErr error
@@ -592,7 +592,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualAccessFetchFuncs(sess, funcs)
 
-	funcs["group"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["group"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.GroupDetail
 		var badResErr error
@@ -618,7 +618,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["role"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["role"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.RoleDetail
 		var badResErr error
@@ -644,7 +644,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["accesskey"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["accesskey"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.AccessKeyMetadata
 		var badResErr error
@@ -670,7 +670,7 @@ func BuildAccessFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["instanceprofile"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["instanceprofile"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.InstanceProfile
 		var badResErr error
@@ -716,7 +716,7 @@ func BuildMessagingFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualMessagingFetchFuncs(sess, funcs)
 
-	funcs["subscription"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["subscription"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*sns.Subscription
 		var badResErr error
@@ -742,7 +742,7 @@ func BuildMessagingFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["topic"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["topic"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*sns.Topic
 		var badResErr error
@@ -777,7 +777,7 @@ func BuildDnsFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualDnsFetchFuncs(sess, funcs)
 
-	funcs["zone"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["zone"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*route53.HostedZone
 		var badResErr error
@@ -812,7 +812,7 @@ func BuildLambdaFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualLambdaFetchFuncs(sess, funcs)
 
-	funcs["function"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["function"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*lambda.FunctionConfiguration
 		var badResErr error
@@ -847,7 +847,7 @@ func BuildMonitoringFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualMonitoringFetchFuncs(sess, funcs)
 
-	funcs["metric"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["metric"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*cloudwatch.Metric
 		var badResErr error
@@ -873,7 +873,7 @@ func BuildMonitoringFetchFuncs(sess *session.Session) fetch.Funcs {
 		return resources, objects, badResErr
 	}
 
-	funcs["alarm"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["alarm"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*cloudwatch.MetricAlarm
 		var badResErr error
@@ -908,7 +908,7 @@ func BuildCdnFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualCdnFetchFuncs(sess, funcs)
 
-	funcs["distribution"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["distribution"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*cloudfront.DistributionSummary
 		var badResErr error
@@ -943,7 +943,7 @@ func BuildCloudformationFetchFuncs(sess *session.Session) fetch.Funcs {
 
 	addManualCloudformationFetchFuncs(sess, funcs)
 
-	funcs["stack"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["stack"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*cloudformation.Stack
 		var badResErr error

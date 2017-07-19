@@ -102,7 +102,7 @@ func Build{{ Title $service.Name }}FetchFuncs(sess *session.Session) fetch.Funcs
 {{- range $index, $fetcher := $service.Fetchers }}
 	{{- if not $fetcher.ManualFetcher }}
 
-	funcs["{{ $fetcher.ResourceType }}"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["{{ $fetcher.ResourceType }}"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*{{ $fetcher.AWSType }}
 		{{- if $fetcher.Multipage }}

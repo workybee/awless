@@ -22,14 +22,15 @@ import (
 )
 
 var (
-	verboseGlobalFlag      bool
-	extraVerboseGlobalFlag bool
-	silentGlobalFlag       bool
-	localGlobalFlag        bool
-	forceGlobalFlag        bool
-	versionGlobalFlag      bool
-	awsRegionGlobalFlag    string
-	awsProfileGlobalFlag   string
+	verboseGlobalFlag          bool
+	extraVerboseGlobalFlag     bool
+	silentGlobalFlag           bool
+	localGlobalFlag            bool
+	forceGlobalFlag            bool
+	versionGlobalFlag          bool
+	newFetcherToggleGlobalFlag bool
+	awsRegionGlobalFlag        string
+	awsProfileGlobalFlag       string
 
 	renderGreenFn    = color.New(color.FgGreen).SprintFunc()
 	renderRedFn      = color.New(color.FgRed).SprintFunc()
@@ -44,6 +45,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&forceGlobalFlag, "force", "f", false, "Force the command and bypass any confirmation prompt")
 	RootCmd.PersistentFlags().StringVarP(&awsRegionGlobalFlag, "aws-region", "r", "", "Overwrite AWS region")
 	RootCmd.PersistentFlags().StringVarP(&awsProfileGlobalFlag, "aws-profile", "p", "", "Overwrite AWS profile")
+	RootCmd.PersistentFlags().BoolVar(&newFetcherToggleGlobalFlag, "new-fetchers", false, "Use new fetcher model")
+
 	RootCmd.Flags().BoolVar(&versionGlobalFlag, "version", false, "Print awless version")
 
 	cobra.AddTemplateFunc("IsCmdAnnotatedOneliner", IsCmdAnnotatedOneliner)

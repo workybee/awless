@@ -22,6 +22,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wallix/awless/aws"
+	"github.com/wallix/awless/aws/services"
 	"github.com/wallix/awless/cloud"
 	"github.com/wallix/awless/config"
 	"github.com/wallix/awless/database"
@@ -71,8 +72,15 @@ func initCloudServicesHook(cmd *cobra.Command, args []string) error {
 	}
 	awsConf := config.GetConfigWithPrefix("aws.")
 	logger.Verbosef("loading AWS session with profile '%v' and region '%v'", awsConf[config.ProfileConfigKey], awsConf[config.RegionConfigKey])
-	if err := aws.InitServices(awsConf, logger.DefaultLogger, config.SetProfileCallback); err != nil {
-		return err
+
+	if newFetcherToggleGlobalFlag {
+		if err := awsservices.Init(awsConf, logger.DefaultLogger, config.SetProfileCallback); err != nil {
+			return err
+		}
+	} else {
+		if err := aws.InitServices(awsConf, logger.DefaultLogger, config.SetProfileCallback); err != nil {
+			return err
+		}
 	}
 
 	if config.TriggerSyncOnConfigUpdate {

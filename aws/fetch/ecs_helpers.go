@@ -6,6 +6,7 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/wallix/awless/fetch"
 )
 
 func getClustersNames(ctx context.Context, api *ecs.ECS) (res []*string, err error) {
@@ -16,17 +17,17 @@ func getClustersNames(ctx context.Context, api *ecs.ECS) (res []*string, err err
 	return
 }
 
-func getAllTasks(ctx context.Context, api *ecs.ECS) (res []*ecs.Task, err error) {
+func getAllTasks(ctx context.Context, cache fetch.Cache, api *ecs.ECS) (res []*ecs.Task, err error) {
 	var clusterArns ([]*string)
-	if cached := ctx.Value("getClustersNames").([]*string); cached == nil {
+	if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
+		clusterArns = cached
+	} else {
 		arns, err := getClustersNames(ctx, api)
 		if err != nil {
 			return []*ecs.Task{}, err
 		}
 		clusterArns = arns
-		ctx = context.WithValue(ctx, "getClustersNames", arns)
-	} else {
-		clusterArns = cached
+		cache.Store("getClustersNames", arns)
 	}
 
 	type listTasksOutput struct {

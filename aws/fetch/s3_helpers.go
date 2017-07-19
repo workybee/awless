@@ -8,21 +8,23 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/wallix/awless/aws/conv"
 	"github.com/wallix/awless/cloud/rdf"
+	"github.com/wallix/awless/fetch"
 	"github.com/wallix/awless/graph"
 )
 
-func forEachBucketParallel(ctx context.Context, api *s3.S3, f func(b *s3.Bucket) error) error {
+func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api *s3.S3, f func(b *s3.Bucket) error) error {
 	var buckets []*s3.Bucket
-	if cached := ctx.Value("getBucketsPerRegion").([]*s3.Bucket); cached == nil {
+	if cached, ok := cache.Get("getBucketsPerRegion").([]*s3.Bucket); ok && cached != nil {
+		buckets = cached
+	} else {
 		res, err := getBucketsPerRegion(ctx, api)
 		if err != nil {
 			return err
 		}
 		buckets = res
-		ctx = context.WithValue(ctx, "getBucketsPerRegion", res)
-	} else {
-		buckets = cached
+		cache.Store("getBucketsPerRegion", res)
 	}
+
 	errc := make(chan error)
 	var wg sync.WaitGroup
 

@@ -29,20 +29,20 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 	elbv2API := elbv2.New(sess)
 	ecsAPI := ecs.New(sess)
 
-	funcs["containerinstance"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["containerinstance"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.ContainerInstance
 		var resources []*graph.Resource
 
 		var clusterArns ([]*string)
-		if cached := ctx.Value("getClustersNames").([]*string); cached == nil {
+		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
+			clusterArns = cached
+		} else {
 			res, err := getClustersNames(ctx, ecsAPI)
 			if err != nil {
 				return resources, objects, err
 			}
 			clusterArns = res
-			ctx = context.WithValue(ctx, "getClustersNames", res)
-		} else {
-			clusterArns = cached
+			cache.Store("getClustersNames", res)
 		}
 
 		for _, cluster := range clusterArns {
@@ -81,20 +81,20 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		return resources, objects, nil
 	}
 
-	funcs["container"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["container"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.Container
 		var resources []*graph.Resource
 
 		var tasks ([]*ecs.Task)
-		if cached := ctx.Value("getAllTasks").([]*ecs.Task); cached == nil {
-			res, err := getAllTasks(ctx, ecsAPI)
+		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
+			tasks = cached
+		} else {
+			res, err := getAllTasks(ctx, cache, ecsAPI)
 			if err != nil {
 				return resources, objects, err
 			}
 			tasks = res
-			ctx = context.WithValue(ctx, "getAllTasks", res)
-		} else {
-			tasks = cached
+			cache.Store("getAllTasks", res)
 		}
 
 		var err error
@@ -144,7 +144,7 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		return resources, objects, nil
 	}
 
-	funcs["containertask"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["containertask"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.TaskDefinition
 		var resources []*graph.Resource
 
@@ -182,15 +182,15 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		}()
 
 		var tasks ([]*ecs.Task)
-		if cached := ctx.Value("getAllTasks").([]*ecs.Task); cached == nil {
-			res, err := getAllTasks(ctx, ecsAPI)
+		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
+			tasks = cached
+		} else {
+			res, err := getAllTasks(ctx, cache, ecsAPI)
 			if err != nil {
 				return resources, objects, err
 			}
 			tasks = res
-			ctx = context.WithValue(ctx, "getAllTasks", res)
-		} else {
-			tasks = cached
+			cache.Store("getAllTasks", res)
 		}
 
 		var errors []string
@@ -274,20 +274,20 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		return resources, objects, err
 	}
 
-	funcs["containercluster"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["containercluster"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*ecs.Cluster
 
 		var clusterNames ([]*string)
-		if cached := ctx.Value("getClustersNames").([]*string); cached == nil {
+		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
+			clusterNames = cached
+		} else {
 			res, err := getClustersNames(ctx, ecsAPI)
 			if err != nil {
 				return resources, objects, err
 			}
 			clusterNames = res
-			ctx = context.WithValue(ctx, "getClustersNames", res)
-		} else {
-			clusterNames = cached
+			cache.Store("getClustersNames", res)
 		}
 
 		for _, clusterArns := range sliceOfSlice(clusterNames, 100) {
@@ -308,7 +308,7 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		return resources, objects, nil
 	}
 
-	funcs["listener"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["listener"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*elbv2.Listener
 		var resources []*graph.Resource
 
@@ -369,7 +369,7 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
 	iamAPI := iam.New(sess)
 
-	funcs["user"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["user"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.UserDetail
 
@@ -440,7 +440,7 @@ func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Fun
 		return resources, objects, nil
 	}
 
-	funcs["policy"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["policy"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.Policy
 
@@ -511,12 +511,12 @@ func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Fun
 func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
 	s3API := s3.New(sess)
 
-	funcs["bucket"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["bucket"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*s3.Bucket
 		bucketM := &sync.Mutex{}
 
-		err := forEachBucketParallel(ctx, s3API, func(b *s3.Bucket) error {
+		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
 			bucketM.Lock()
 			objects = append(objects, b)
 			bucketM.Unlock()
@@ -530,11 +530,11 @@ func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Fu
 		return resources, objects, err
 	}
 
-	funcs["s3object"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["s3object"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*s3.Object
 		var resources []*graph.Resource
 
-		err := forEachBucketParallel(ctx, s3API, func(b *s3.Bucket) error {
+		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
 			return fetchObjectsForBucket(ctx, s3API, b, &resources)
 		})
 
@@ -544,7 +544,7 @@ func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Fu
 func addManualMessagingFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
 	sqsAPI := sqs.New(sess)
 
-	funcs["queue"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["queue"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*string
 		var resources []*graph.Resource
 
@@ -627,7 +627,7 @@ func addManualMessagingFetchFuncs(sess *session.Session, funcs map[string]fetch.
 func addManualDnsFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
 	dnsAPI := route53.New(sess)
 
-	funcs["record"] = func(ctx context.Context) ([]*graph.Resource, interface{}, error) {
+	funcs["record"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*route53.ResourceRecordSet
 		var resources []*graph.Resource
 
