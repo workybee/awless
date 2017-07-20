@@ -24,44 +24,24 @@ import (
 	"context"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/wallix/awless/aws/conv"
 	"github.com/wallix/awless/fetch"
 	"github.com/wallix/awless/graph"
 )
 
 func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
-	ec2_api := ec2.New(conf.Sess)
-	ec2_api = ec2_api // avoid not used message when api is only manual mode
-	elbv2_api := elbv2.New(conf.Sess)
-	elbv2_api = elbv2_api // avoid not used message when api is only manual mode
-	rds_api := rds.New(conf.Sess)
-	rds_api = rds_api // avoid not used message when api is only manual mode
-	autoscaling_api := autoscaling.New(conf.Sess)
-	autoscaling_api = autoscaling_api // avoid not used message when api is only manual mode
-	ecr_api := ecr.New(conf.Sess)
-	ecr_api = ecr_api // avoid not used message when api is only manual mode
-	ecs_api := ecs.New(conf.Sess)
-	ecs_api = ecs_api // avoid not used message when api is only manual mode
-	applicationautoscaling_api := applicationautoscaling.New(conf.Sess)
-	applicationautoscaling_api = applicationautoscaling_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualInfraFetchFuncs(conf, funcs)
@@ -75,7 +55,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := ec2_api.DescribeInstancesPages(&ec2.DescribeInstancesInput{},
+		err := conf.APIs.Ec2.DescribeInstancesPages(&ec2.DescribeInstancesInput{},
 			func(out *ec2.DescribeInstancesOutput, lastPage bool) (shouldContinue bool) {
 				for _, all := range out.Reservations {
 					for _, output := range all.Instances {
@@ -108,7 +88,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeSubnets(&ec2.DescribeSubnetsInput{})
+		out, err := conf.APIs.Ec2.DescribeSubnets(&ec2.DescribeSubnetsInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -134,7 +114,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeVpcs(&ec2.DescribeVpcsInput{})
+		out, err := conf.APIs.Ec2.DescribeVpcs(&ec2.DescribeVpcsInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -160,7 +140,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+		out, err := conf.APIs.Ec2.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -186,7 +166,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{})
+		out, err := conf.APIs.Ec2.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -212,7 +192,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := ec2_api.DescribeVolumesPages(&ec2.DescribeVolumesInput{},
+		err := conf.APIs.Ec2.DescribeVolumesPages(&ec2.DescribeVolumesInput{},
 			func(out *ec2.DescribeVolumesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Volumes {
 					if badResErr != nil {
@@ -243,7 +223,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeInternetGateways(&ec2.DescribeInternetGatewaysInput{})
+		out, err := conf.APIs.Ec2.DescribeInternetGateways(&ec2.DescribeInternetGatewaysInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -269,7 +249,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeNatGateways(&ec2.DescribeNatGatewaysInput{})
+		out, err := conf.APIs.Ec2.DescribeNatGateways(&ec2.DescribeNatGatewaysInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -295,7 +275,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
+		out, err := conf.APIs.Ec2.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -321,7 +301,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
+		out, err := conf.APIs.Ec2.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -347,7 +327,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeImages(&ec2.DescribeImagesInput{Owners: []*string{awssdk.String("self")}})
+		out, err := conf.APIs.Ec2.DescribeImages(&ec2.DescribeImagesInput{Owners: []*string{awssdk.String("self")}})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -373,7 +353,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeImportImageTasks(&ec2.DescribeImportImageTasksInput{})
+		out, err := conf.APIs.Ec2.DescribeImportImageTasks(&ec2.DescribeImportImageTasksInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -399,7 +379,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := ec2_api.DescribeAddresses(&ec2.DescribeAddressesInput{})
+		out, err := conf.APIs.Ec2.DescribeAddresses(&ec2.DescribeAddressesInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -425,7 +405,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := ec2_api.DescribeSnapshotsPages(&ec2.DescribeSnapshotsInput{OwnerIds: []*string{awssdk.String("self")}},
+		err := conf.APIs.Ec2.DescribeSnapshotsPages(&ec2.DescribeSnapshotsInput{OwnerIds: []*string{awssdk.String("self")}},
 			func(out *ec2.DescribeSnapshotsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Snapshots {
 					if badResErr != nil {
@@ -456,7 +436,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := elbv2_api.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{},
+		err := conf.APIs.Elbv2.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{},
 			func(out *elbv2.DescribeLoadBalancersOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.LoadBalancers {
 					if badResErr != nil {
@@ -487,7 +467,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 
-		out, err := elbv2_api.DescribeTargetGroups(&elbv2.DescribeTargetGroupsInput{})
+		out, err := conf.APIs.Elbv2.DescribeTargetGroups(&elbv2.DescribeTargetGroupsInput{})
 		if err != nil {
 			return resources, objects, err
 		}
@@ -513,7 +493,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := rds_api.DescribeDBInstancesPages(&rds.DescribeDBInstancesInput{},
+		err := conf.APIs.Rds.DescribeDBInstancesPages(&rds.DescribeDBInstancesInput{},
 			func(out *rds.DescribeDBInstancesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.DBInstances {
 					if badResErr != nil {
@@ -544,7 +524,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := rds_api.DescribeDBSubnetGroupsPages(&rds.DescribeDBSubnetGroupsInput{},
+		err := conf.APIs.Rds.DescribeDBSubnetGroupsPages(&rds.DescribeDBSubnetGroupsInput{},
 			func(out *rds.DescribeDBSubnetGroupsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.DBSubnetGroups {
 					if badResErr != nil {
@@ -575,7 +555,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := autoscaling_api.DescribeLaunchConfigurationsPages(&autoscaling.DescribeLaunchConfigurationsInput{},
+		err := conf.APIs.Autoscaling.DescribeLaunchConfigurationsPages(&autoscaling.DescribeLaunchConfigurationsInput{},
 			func(out *autoscaling.DescribeLaunchConfigurationsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.LaunchConfigurations {
 					if badResErr != nil {
@@ -606,7 +586,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := autoscaling_api.DescribeAutoScalingGroupsPages(&autoscaling.DescribeAutoScalingGroupsInput{},
+		err := conf.APIs.Autoscaling.DescribeAutoScalingGroupsPages(&autoscaling.DescribeAutoScalingGroupsInput{},
 			func(out *autoscaling.DescribeAutoScalingGroupsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.AutoScalingGroups {
 					if badResErr != nil {
@@ -637,7 +617,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := autoscaling_api.DescribePoliciesPages(&autoscaling.DescribePoliciesInput{},
+		err := conf.APIs.Autoscaling.DescribePoliciesPages(&autoscaling.DescribePoliciesInput{},
 			func(out *autoscaling.DescribePoliciesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.ScalingPolicies {
 					if badResErr != nil {
@@ -668,7 +648,7 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := ecr_api.DescribeRepositoriesPages(&ecr.DescribeRepositoriesInput{},
+		err := conf.APIs.Ecr.DescribeRepositoriesPages(&ecr.DescribeRepositoriesInput{},
 			func(out *ecr.DescribeRepositoriesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Repositories {
 					if badResErr != nil {
@@ -692,11 +672,6 @@ func BuildInfraFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
-	iam_api := iam.New(conf.Sess)
-	iam_api = iam_api // avoid not used message when api is only manual mode
-	sts_api := sts.New(conf.Sess)
-	sts_api = sts_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualAccessFetchFuncs(conf, funcs)
@@ -710,7 +685,7 @@ func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := iam_api.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{Filter: []*string{awssdk.String(iam.EntityTypeGroup)}},
+		err := conf.APIs.Iam.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{Filter: []*string{awssdk.String(iam.EntityTypeGroup)}},
 			func(out *iam.GetAccountAuthorizationDetailsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.GroupDetailList {
 					if badResErr != nil {
@@ -741,7 +716,7 @@ func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := iam_api.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{Filter: []*string{awssdk.String(iam.EntityTypeRole)}},
+		err := conf.APIs.Iam.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{Filter: []*string{awssdk.String(iam.EntityTypeRole)}},
 			func(out *iam.GetAccountAuthorizationDetailsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.RoleDetailList {
 					if badResErr != nil {
@@ -772,7 +747,7 @@ func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := iam_api.ListAccessKeysPages(&iam.ListAccessKeysInput{},
+		err := conf.APIs.Iam.ListAccessKeysPages(&iam.ListAccessKeysInput{},
 			func(out *iam.ListAccessKeysOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.AccessKeyMetadata {
 					if badResErr != nil {
@@ -803,7 +778,7 @@ func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := iam_api.ListInstanceProfilesPages(&iam.ListInstanceProfilesInput{},
+		err := conf.APIs.Iam.ListInstanceProfilesPages(&iam.ListInstanceProfilesInput{},
 			func(out *iam.ListInstanceProfilesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.InstanceProfiles {
 					if badResErr != nil {
@@ -827,20 +802,12 @@ func BuildAccessFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildStorageFetchFuncs(conf *Config) fetch.Funcs {
-	s3_api := s3.New(conf.Sess)
-	s3_api = s3_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualStorageFetchFuncs(conf, funcs)
 	return funcs
 }
 func BuildMessagingFetchFuncs(conf *Config) fetch.Funcs {
-	sns_api := sns.New(conf.Sess)
-	sns_api = sns_api // avoid not used message when api is only manual mode
-	sqs_api := sqs.New(conf.Sess)
-	sqs_api = sqs_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualMessagingFetchFuncs(conf, funcs)
@@ -854,7 +821,7 @@ func BuildMessagingFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := sns_api.ListSubscriptionsPages(&sns.ListSubscriptionsInput{},
+		err := conf.APIs.Sns.ListSubscriptionsPages(&sns.ListSubscriptionsInput{},
 			func(out *sns.ListSubscriptionsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Subscriptions {
 					if badResErr != nil {
@@ -885,7 +852,7 @@ func BuildMessagingFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := sns_api.ListTopicsPages(&sns.ListTopicsInput{},
+		err := conf.APIs.Sns.ListTopicsPages(&sns.ListTopicsInput{},
 			func(out *sns.ListTopicsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Topics {
 					if badResErr != nil {
@@ -909,9 +876,6 @@ func BuildMessagingFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildDnsFetchFuncs(conf *Config) fetch.Funcs {
-	route53_api := route53.New(conf.Sess)
-	route53_api = route53_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualDnsFetchFuncs(conf, funcs)
@@ -925,7 +889,7 @@ func BuildDnsFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := route53_api.ListHostedZonesPages(&route53.ListHostedZonesInput{},
+		err := conf.APIs.Route53.ListHostedZonesPages(&route53.ListHostedZonesInput{},
 			func(out *route53.ListHostedZonesOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.HostedZones {
 					if badResErr != nil {
@@ -949,9 +913,6 @@ func BuildDnsFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildLambdaFetchFuncs(conf *Config) fetch.Funcs {
-	lambda_api := lambda.New(conf.Sess)
-	lambda_api = lambda_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualLambdaFetchFuncs(conf, funcs)
@@ -965,7 +926,7 @@ func BuildLambdaFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := lambda_api.ListFunctionsPages(&lambda.ListFunctionsInput{},
+		err := conf.APIs.Lambda.ListFunctionsPages(&lambda.ListFunctionsInput{},
 			func(out *lambda.ListFunctionsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Functions {
 					if badResErr != nil {
@@ -989,9 +950,6 @@ func BuildLambdaFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildMonitoringFetchFuncs(conf *Config) fetch.Funcs {
-	cloudwatch_api := cloudwatch.New(conf.Sess)
-	cloudwatch_api = cloudwatch_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualMonitoringFetchFuncs(conf, funcs)
@@ -1005,7 +963,7 @@ func BuildMonitoringFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := cloudwatch_api.ListMetricsPages(&cloudwatch.ListMetricsInput{},
+		err := conf.APIs.Cloudwatch.ListMetricsPages(&cloudwatch.ListMetricsInput{},
 			func(out *cloudwatch.ListMetricsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Metrics {
 					if badResErr != nil {
@@ -1036,7 +994,7 @@ func BuildMonitoringFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := cloudwatch_api.DescribeAlarmsPages(&cloudwatch.DescribeAlarmsInput{},
+		err := conf.APIs.Cloudwatch.DescribeAlarmsPages(&cloudwatch.DescribeAlarmsInput{},
 			func(out *cloudwatch.DescribeAlarmsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.MetricAlarms {
 					if badResErr != nil {
@@ -1060,9 +1018,6 @@ func BuildMonitoringFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildCdnFetchFuncs(conf *Config) fetch.Funcs {
-	cloudfront_api := cloudfront.New(conf.Sess)
-	cloudfront_api = cloudfront_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualCdnFetchFuncs(conf, funcs)
@@ -1076,7 +1031,7 @@ func BuildCdnFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := cloudfront_api.ListDistributionsPages(&cloudfront.ListDistributionsInput{},
+		err := conf.APIs.Cloudfront.ListDistributionsPages(&cloudfront.ListDistributionsInput{},
 			func(out *cloudfront.ListDistributionsOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.DistributionList.Items {
 					if badResErr != nil {
@@ -1100,9 +1055,6 @@ func BuildCdnFetchFuncs(conf *Config) fetch.Funcs {
 	return funcs
 }
 func BuildCloudformationFetchFuncs(conf *Config) fetch.Funcs {
-	cloudformation_api := cloudformation.New(conf.Sess)
-	cloudformation_api = cloudformation_api // avoid not used message when api is only manual mode
-
 	funcs := make(map[string]fetch.Func)
 
 	addManualCloudformationFetchFuncs(conf, funcs)
@@ -1116,7 +1068,7 @@ func BuildCloudformationFetchFuncs(conf *Config) fetch.Funcs {
 			return resources, objects, nil
 		}
 		var badResErr error
-		err := cloudformation_api.DescribeStacksPages(&cloudformation.DescribeStacksInput{},
+		err := conf.APIs.Cloudformation.DescribeStacksPages(&cloudformation.DescribeStacksInput{},
 			func(out *cloudformation.DescribeStacksOutput, lastPage bool) (shouldContinue bool) {
 				for _, output := range out.Stacks {
 					if badResErr != nil {

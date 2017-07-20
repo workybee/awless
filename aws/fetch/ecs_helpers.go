@@ -6,10 +6,11 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/aws/aws-sdk-go/service/ecs/ecsiface"
 	"github.com/wallix/awless/fetch"
 )
 
-func getClustersNames(ctx context.Context, api *ecs.ECS) (res []*string, err error) {
+func getClustersNames(ctx context.Context, api ecsiface.ECSAPI) (res []*string, err error) {
 	err = api.ListClustersPages(&ecs.ListClustersInput{}, func(out *ecs.ListClustersOutput, lastPage bool) (shouldContinue bool) {
 		res = append(res, out.ClusterArns...)
 		return out.NextToken != nil
@@ -17,7 +18,7 @@ func getClustersNames(ctx context.Context, api *ecs.ECS) (res []*string, err err
 	return
 }
 
-func getAllTasks(ctx context.Context, cache fetch.Cache, api *ecs.ECS) (res []*ecs.Task, err error) {
+func getAllTasks(ctx context.Context, cache fetch.Cache, api ecsiface.ECSAPI) (res []*ecs.Task, err error) {
 	var clusterArns ([]*string)
 	if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
 		clusterArns = cached

@@ -542,10 +542,6 @@ var extractHasATrueBoolInStructSliceFn = func(key string) transformFn {
 	}
 }
 
-var fetchAndExtractGrantsFn = func(i interface{}) (interface{}, error) {
-	return []*graph.Grant{}, nil
-}
-
 var extractDistributionOriginFn = func(i interface{}) (interface{}, error) {
 	if _, ok := i.(*cloudfront.Origins); !ok {
 		return nil, fmt.Errorf("extract origins: not a origins pointer but a %T", i)
