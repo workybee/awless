@@ -163,7 +163,13 @@ func New{{ Title $service.Name }}(sess *session.Session, awsconf config, log *lo
 	{{- range $, $api := $service.Api }}
 		{{ApiToInterface $api }}: {{ $api }}.New(sess),
 	{{- end }}
-		fetcher: fetch.NewFetcher(awsfetch.Build{{ Title $service.Name }}FetchFuncs(sess)),
+		fetcher: fetch.NewFetcher(awsfetch.Build{{ Title $service.Name }}FetchFuncs(
+			&awsfetch.Config{
+				Sess: sess,
+				Extra: awsconf,
+				Log: log,
+			},
+		)),
 		config: awsconf,
 		region: region,
 		log: log,

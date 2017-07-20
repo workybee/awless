@@ -89,15 +89,15 @@ import (
 )
 
 {{- range $index, $service := . }}
-func Build{{ Title $service.Name }}FetchFuncs(sess *session.Session) fetch.Funcs {
+func Build{{ Title $service.Name }}FetchFuncs(conf *Config) fetch.Funcs {
 {{- range $, $api := $service.Api }}
-	{{ $api }}_api := {{ $api }}.New(sess)
+	{{ $api }}_api := {{ $api }}.New(conf.Sess)
 	{{ $api }}_api = {{ $api }}_api // avoid not used message when api is only manual mode
 {{- end }}
 	
 	funcs := make(map[string]fetch.Func)
 
-	addManual{{ Title $service.Name }}FetchFuncs(sess, funcs)
+	addManual{{ Title $service.Name }}FetchFuncs(conf, funcs)
 	
 {{- range $index, $fetcher := $service.Fetchers }}
 	{{- if not $fetcher.ManualFetcher }}
@@ -105,6 +105,12 @@ func Build{{ Title $service.Name }}FetchFuncs(sess *session.Session) fetch.Funcs
 	funcs["{{ $fetcher.ResourceType }}"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*{{ $fetcher.AWSType }}
+
+		if !conf.getBoolDefaultTrue("aws.{{ $service.Name }}.{{ $fetcher.ResourceType }}.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource {{ $service.Name }}[{{ $fetcher.ResourceType }}]")
+			return resources, objects, nil
+		}
+		
 		{{- if $fetcher.Multipage }}
 		var badResErr error
 		err := {{ $fetcher.Api}}_api.{{ $fetcher.ApiMethod }}(&{{ $fetcher.Input }},
