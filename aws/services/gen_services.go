@@ -343,23 +343,30 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -885,8 +892,12 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -954,23 +965,30 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1097,8 +1115,12 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1159,23 +1181,30 @@ func (s *Storage) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1226,8 +1255,12 @@ func (s *Storage) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1292,23 +1325,30 @@ func (s *Messaging) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1378,8 +1418,12 @@ func (s *Messaging) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1440,23 +1484,30 @@ func (s *Dns) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1507,8 +1558,12 @@ func (s *Dns) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1568,23 +1623,30 @@ func (s *Lambda) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1616,8 +1678,12 @@ func (s *Lambda) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1678,23 +1744,30 @@ func (s *Monitoring) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1745,8 +1818,12 @@ func (s *Monitoring) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1806,23 +1883,30 @@ func (s *Cdn) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1854,8 +1938,12 @@ func (s *Cdn) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
@@ -1915,23 +2003,30 @@ func (s *Cloudformation) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
 	gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
 
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -1963,8 +2058,12 @@ func (s *Cloudformation) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-			return gph, err
+			allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil

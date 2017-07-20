@@ -67,15 +67,20 @@ func (f *fetcher) Fetch(ctx context.Context) (*graph.Graph, error) {
 	}()
 
 	gph := graph.NewGraph()
-	var err error
+
+	ferr := new(Error)
 	for res := range results {
-		if err = res.Err; err != nil {
-			continue
+		if err := res.Err; err != nil {
+			ferr.Add(err)
 		}
 		gph.AddResource(res.Resources...)
 	}
 
-	return gph, err
+	if ferr.Any() {
+		return gph, ferr
+	}
+
+	return gph, nil
 }
 
 func (f *fetcher) FetchByType(ctx context.Context, resourceType string) (*graph.Graph, error) {

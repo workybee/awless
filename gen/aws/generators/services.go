@@ -199,23 +199,30 @@ func (s *{{ Title $service.Name }}) FetchResources() (*graph.Graph, error) {
 		return graph.NewGraph(), nil
 	}
 
+	allErrors := new(fetch.Error)
+
 	ctx := context.WithValue(context.Background(), "region", s.region)
   gph, err := s.fetcher.Fetch(ctx)
 	defer s.fetcher.Reset()
-
-	regionN := graph.InitResource(cloud.Region, s.region)
-	err = gph.AddResource(regionN)
-
-	switch ee := err.(type) {
-	case awserr.RequestFailure:
-		switch ee.Message() {
-		case accessDenied:
-			return gph, cloud.ErrFetchAccessDenied
+	
+	for _, e := range *fetch.WrapError(err) {
+		switch ee := e.(type) {
+		case awserr.RequestFailure:
+			switch ee.Message() {
+			case accessDenied:
+				allErrors.Add(cloud.ErrFetchAccessDenied)
+			default:
+				allErrors.Add(ee)
+			}
+		case nil:
+			continue
 		default:
-			return gph, ee
+			allErrors.Add(ee)
 		}
-	default:
-		return gph, ee
+	}
+
+	if err := gph.AddResource(graph.InitResource(cloud.Region, s.region)); err != nil {
+		return gph, err
 	}
 
 	errc := make(chan error)
@@ -250,8 +257,12 @@ func (s *{{ Title $service.Name }}) FetchResources() (*graph.Graph, error) {
 
 	for err := range errc {
 		if err != nil {
-				return gph, err
+				allErrors.Add(err)
 		}
+	}
+
+	if allErrors.Any() {
+		return gph, allErrors
 	}
 
 	return gph, nil
