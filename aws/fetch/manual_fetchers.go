@@ -25,9 +25,6 @@ import (
 )
 
 func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
-	elbv2API := elbv2.New(conf.Sess)
-	ecsAPI := ecs.New(conf.Sess)
-
 	funcs["containerinstance"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.ContainerInstance
 		var resources []*graph.Resource
@@ -41,7 +38,7 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
 			clusterArns = cached
 		} else {
-			res, err := getClustersNames(ctx, ecsAPI)
+			res, err := getClustersNames(ctx, conf.APIs.Ecs)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -51,13 +48,13 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 
 		for _, cluster := range clusterArns {
 			var badResErr error
-			err := ecsAPI.ListContainerInstancesPages(&ecs.ListContainerInstancesInput{Cluster: cluster}, func(out *ecs.ListContainerInstancesOutput, lastPage bool) (shouldContinue bool) {
+			err := conf.APIs.Ecs.ListContainerInstancesPages(&ecs.ListContainerInstancesInput{Cluster: cluster}, func(out *ecs.ListContainerInstancesOutput, lastPage bool) (shouldContinue bool) {
 				var containerInstancesOut *ecs.DescribeContainerInstancesOutput
 				if len(out.ContainerInstanceArns) == 0 {
 					return out.NextToken != nil
 				}
 
-				if containerInstancesOut, badResErr = ecsAPI.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{Cluster: cluster, ContainerInstances: out.ContainerInstanceArns}); badResErr != nil {
+				if containerInstancesOut, badResErr = conf.APIs.Ecs.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{Cluster: cluster, ContainerInstances: out.ContainerInstanceArns}); badResErr != nil {
 					return false
 				}
 
@@ -98,7 +95,7 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
 			tasks = cached
 		} else {
-			res, err := getAllTasks(ctx, cache, ecsAPI)
+			res, err := getAllTasks(ctx, cache, conf.APIs.Ecs)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -171,12 +168,12 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		var wg sync.WaitGroup
 		resc := make(chan resStruct)
 
-		err := ecsAPI.ListTaskDefinitionsPages(&ecs.ListTaskDefinitionsInput{}, func(out *ecs.ListTaskDefinitionsOutput, lastPage bool) (shouldContinue bool) {
+		err := conf.APIs.Ecs.ListTaskDefinitionsPages(&ecs.ListTaskDefinitionsInput{}, func(out *ecs.ListTaskDefinitionsOutput, lastPage bool) (shouldContinue bool) {
 			for _, arn := range out.TaskDefinitionArns {
 				wg.Add(1)
 				go func(taskDefArn *string) {
 					defer wg.Done()
-					tasksOut, err := ecsAPI.DescribeTaskDefinition(&ecs.DescribeTaskDefinitionInput{TaskDefinition: taskDefArn})
+					tasksOut, err := conf.APIs.Ecs.DescribeTaskDefinition(&ecs.DescribeTaskDefinitionInput{TaskDefinition: taskDefArn})
 					if err != nil {
 						resc <- resStruct{err: err}
 						return
@@ -199,7 +196,7 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
 			tasks = cached
 		} else {
-			res, err := getAllTasks(ctx, cache, ecsAPI)
+			res, err := getAllTasks(ctx, cache, conf.APIs.Ecs)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -301,7 +298,7 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
 			clusterNames = cached
 		} else {
-			res, err := getClustersNames(ctx, ecsAPI)
+			res, err := getClustersNames(ctx, conf.APIs.Ecs)
 			if err != nil {
 				return resources, objects, err
 			}
@@ -310,7 +307,7 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		}
 
 		for _, clusterArns := range sliceOfSlice(clusterNames, 100) {
-			clustersOut, err := ecsAPI.DescribeClusters(&ecs.DescribeClustersInput{Clusters: clusterArns})
+			clustersOut, err := conf.APIs.Ecs.DescribeClusters(&ecs.DescribeClustersInput{Clusters: clusterArns})
 			if err != nil {
 				return resources, objects, err
 			}
@@ -340,13 +337,13 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		resultc := make(chan *elbv2.Listener)
 		var wg sync.WaitGroup
 
-		err := elbv2API.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{},
+		err := conf.APIs.Elbv2.DescribeLoadBalancersPages(&elbv2.DescribeLoadBalancersInput{},
 			func(out *elbv2.DescribeLoadBalancersOutput, lastPage bool) (shouldContinue bool) {
 				for _, lb := range out.LoadBalancers {
 					wg.Add(1)
 					go func(lb *elbv2.LoadBalancer) {
 						defer wg.Done()
-						err := elbv2API.DescribeListenersPages(&elbv2.DescribeListenersInput{LoadBalancerArn: lb.LoadBalancerArn},
+						err := conf.APIs.Elbv2.DescribeListenersPages(&elbv2.DescribeListenersInput{LoadBalancerArn: lb.LoadBalancerArn},
 							func(out *elbv2.DescribeListenersOutput, lastPage bool) (shouldContinue bool) {
 								for _, listen := range out.Listeners {
 									resultc <- listen
@@ -391,8 +388,6 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 }
 
 func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
-	iamAPI := iam.New(conf.Sess)
-
 	funcs["user"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.UserDetail
@@ -409,7 +404,7 @@ func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		go func() {
 			defer wg.Done()
 			var badResErr error
-			err := iamAPI.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{
+			err := conf.APIs.Iam.GetAccountAuthorizationDetailsPages(&iam.GetAccountAuthorizationDetailsInput{
 				Filter: []*string{
 					awssdk.String(iam.EntityTypeUser),
 				},
@@ -440,7 +435,7 @@ func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		go func() {
 			defer wg.Done()
 
-			err := iamAPI.ListUsersPages(&iam.ListUsersInput{}, func(page *iam.ListUsersOutput, lastPage bool) bool {
+			err := conf.APIs.Iam.ListUsersPages(&iam.ListUsersInput{}, func(page *iam.ListUsersOutput, lastPage bool) bool {
 				for _, user := range page.Users {
 					res, badResErr := awsconv.NewResource(user)
 					if badResErr != nil {
@@ -499,7 +494,7 @@ func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := iamAPI.ListPoliciesPages(&iam.ListPoliciesInput{OnlyAttached: awssdk.Bool(true)},
+			err := conf.APIs.Iam.ListPoliciesPages(&iam.ListPoliciesInput{OnlyAttached: awssdk.Bool(true)},
 				func(out *iam.ListPoliciesOutput, lastPage bool) (shouldContinue bool) {
 					return processPagePolicies(out)
 				})
@@ -512,7 +507,7 @@ func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := iamAPI.ListPoliciesPages(&iam.ListPoliciesInput{Scope: awssdk.String("Local")},
+			err := conf.APIs.Iam.ListPoliciesPages(&iam.ListPoliciesInput{Scope: awssdk.String("Local")},
 				func(out *iam.ListPoliciesOutput, lastPage bool) (shouldContinue bool) {
 					return processPagePolicies(out)
 				})
@@ -543,8 +538,6 @@ func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 	}
 }
 func addManualStorageFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
-	s3API := s3.New(conf.Sess)
-
 	funcs["bucket"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*s3.Bucket
@@ -556,7 +549,7 @@ func addManualStorageFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 
 		bucketM := &sync.Mutex{}
 
-		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
+		err := forEachBucketParallel(ctx, cache, conf.APIs.S3, func(b *s3.Bucket) error {
 			bucketM.Lock()
 			objects = append(objects, b)
 			bucketM.Unlock()
@@ -579,16 +572,14 @@ func addManualStorageFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			return resources, objects, nil
 		}
 
-		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
-			return fetchObjectsForBucket(ctx, s3API, b, &resources)
+		err := forEachBucketParallel(ctx, cache, conf.APIs.S3, func(b *s3.Bucket) error {
+			return fetchObjectsForBucket(ctx, conf.APIs.S3, b, &resources)
 		})
 
 		return resources, objects, err
 	}
 }
 func addManualMessagingFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
-	sqsAPI := sqs.New(conf.Sess)
-
 	funcs["queue"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*string
 		var resources []*graph.Resource
@@ -598,7 +589,7 @@ func addManualMessagingFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			return resources, objects, nil
 		}
 
-		out, err := sqsAPI.ListQueues(&sqs.ListQueuesInput{})
+		out, err := conf.APIs.Sqs.ListQueues(&sqs.ListQueuesInput{})
 		if err != nil {
 			return nil, objects, err
 		}
@@ -612,7 +603,7 @@ func addManualMessagingFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 				defer wg.Done()
 				res := graph.InitResource(cloud.Queue, awssdk.StringValue(url))
 				res.Properties[properties.ID] = awssdk.StringValue(url)
-				attrs, err := sqsAPI.GetQueueAttributes(&sqs.GetQueueAttributesInput{AttributeNames: []*string{awssdk.String("All")}, QueueUrl: url})
+				attrs, err := conf.APIs.Sqs.GetQueueAttributes(&sqs.GetQueueAttributesInput{AttributeNames: []*string{awssdk.String("All")}, QueueUrl: url})
 				if e, ok := err.(awserr.RequestFailure); ok && (e.Code() == sqs.ErrCodeQueueDoesNotExist || e.Code() == sqs.ErrCodeQueueDeletedRecently) {
 					return
 				}
@@ -675,8 +666,6 @@ func addManualMessagingFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 	}
 }
 func addManualDnsFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
-	dnsAPI := route53.New(conf.Sess)
-
 	funcs["record"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*route53.ResourceRecordSet
 		var resources []*graph.Resource
@@ -690,7 +679,7 @@ func addManualDnsFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 		errc := make(chan error)
 
 		go func() {
-			err := dnsAPI.ListHostedZonesPages(&route53.ListHostedZonesInput{},
+			err := conf.APIs.Route53.ListHostedZonesPages(&route53.ListHostedZonesInput{},
 				func(out *route53.ListHostedZonesOutput, lastPage bool) (shouldContinue bool) {
 					for _, output := range out.HostedZones {
 						zonec <- output
@@ -712,7 +701,7 @@ func addManualDnsFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 				wg.Add(1)
 				go func(z *route53.HostedZone) {
 					defer wg.Done()
-					err := dnsAPI.ListResourceRecordSetsPages(&route53.ListResourceRecordSetsInput{HostedZoneId: z.Id},
+					err := conf.APIs.Route53.ListResourceRecordSetsPages(&route53.ListResourceRecordSetsInput{HostedZoneId: z.Id},
 						func(out *route53.ListResourceRecordSetsOutput, lastPage bool) (shouldContinue bool) {
 							for _, output := range out.ResourceRecordSets {
 								resultc <- output

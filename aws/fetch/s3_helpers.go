@@ -6,13 +6,14 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/wallix/awless/aws/conv"
 	"github.com/wallix/awless/cloud/rdf"
 	"github.com/wallix/awless/fetch"
 	"github.com/wallix/awless/graph"
 )
 
-func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api *s3.S3, f func(b *s3.Bucket) error) error {
+func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api s3iface.S3API, f func(b *s3.Bucket) error) error {
 	var buckets []*s3.Bucket
 	if cached, ok := cache.Get("getBucketsPerRegion").([]*s3.Bucket); ok && cached != nil {
 		buckets = cached
@@ -51,7 +52,7 @@ func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api *s3.S3, f
 	return nil
 }
 
-func fetchObjectsForBucket(ctx context.Context, api *s3.S3, bucket *s3.Bucket, resources *[]*graph.Resource) error {
+func fetchObjectsForBucket(ctx context.Context, api s3iface.S3API, bucket *s3.Bucket, resources *[]*graph.Resource) error {
 	out, err := api.ListObjects(&s3.ListObjectsInput{Bucket: bucket.Name})
 	if err != nil {
 		return err
@@ -75,7 +76,7 @@ func fetchObjectsForBucket(ctx context.Context, api *s3.S3, bucket *s3.Bucket, r
 	return nil
 }
 
-func getBucketsPerRegion(ctx context.Context, api *s3.S3) ([]*s3.Bucket, error) {
+func getBucketsPerRegion(ctx context.Context, api s3iface.S3API) ([]*s3.Bucket, error) {
 	var buckets []*s3.Bucket
 	out, err := api.ListBuckets(&s3.ListBucketsInput{})
 	if err != nil {

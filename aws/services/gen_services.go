@@ -271,24 +271,38 @@ type Infra struct {
 
 func NewInfra(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	ec2API := ec2.New(sess)
+	elbv2API := elbv2.New(sess)
+	rdsAPI := rds.New(sess)
+	autoscalingAPI := autoscaling.New(sess)
+	ecrAPI := ecr.New(sess)
+	ecsAPI := ecs.New(sess)
+	applicationautoscalingAPI := applicationautoscaling.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		ec2API,
+		elbv2API,
+		rdsAPI,
+		autoscalingAPI,
+		ecrAPI,
+		ecsAPI,
+		applicationautoscalingAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Infra{
-		EC2API:         ec2.New(sess),
-		ELBV2API:       elbv2.New(sess),
-		RDSAPI:         rds.New(sess),
-		AutoScalingAPI: autoscaling.New(sess),
-		ECRAPI:         ecr.New(sess),
-		ECSAPI:         ecs.New(sess),
-		ApplicationAutoScalingAPI: applicationautoscaling.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildInfraFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		EC2API:         ec2API,
+		ELBV2API:       elbv2API,
+		RDSAPI:         rdsAPI,
+		AutoScalingAPI: autoscalingAPI,
+		ECRAPI:         ecrAPI,
+		ECSAPI:         ecsAPI,
+		ApplicationAutoScalingAPI: applicationautoscalingAPI,
+		fetcher:                   fetch.NewFetcher(awsfetch.BuildInfraFetchFuncs(fetchConfig)),
+		config:                    awsconf,
+		region:                    region,
+		log:                       log,
 	}
 }
 
@@ -930,19 +944,23 @@ type Access struct {
 
 func NewAccess(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := "global"
+	iamAPI := iam.New(sess)
+	stsAPI := sts.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		iamAPI,
+		stsAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Access{
-		IAMAPI: iam.New(sess),
-		STSAPI: sts.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildAccessFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		IAMAPI:  iamAPI,
+		STSAPI:  stsAPI,
+		fetcher: fetch.NewFetcher(awsfetch.BuildAccessFetchFuncs(fetchConfig)),
+		config:  awsconf,
+		region:  region,
+		log:     log,
 	}
 }
 
@@ -1158,18 +1176,20 @@ type Storage struct {
 
 func NewStorage(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	s3API := s3.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		s3API,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Storage{
-		S3API: s3.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildStorageFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		S3API:   s3API,
+		fetcher: fetch.NewFetcher(awsfetch.BuildStorageFetchFuncs(fetchConfig)),
+		config:  awsconf,
+		region:  region,
+		log:     log,
 	}
 }
 
@@ -1305,19 +1325,23 @@ type Messaging struct {
 
 func NewMessaging(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	snsAPI := sns.New(sess)
+	sqsAPI := sqs.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		snsAPI,
+		sqsAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Messaging{
-		SNSAPI: sns.New(sess),
-		SQSAPI: sqs.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildMessagingFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		SNSAPI:  snsAPI,
+		SQSAPI:  sqsAPI,
+		fetcher: fetch.NewFetcher(awsfetch.BuildMessagingFetchFuncs(fetchConfig)),
+		config:  awsconf,
+		region:  region,
+		log:     log,
 	}
 }
 
@@ -1473,18 +1497,20 @@ type Dns struct {
 
 func NewDns(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := "global"
+	route53API := route53.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		route53API,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Dns{
-		Route53API: route53.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildDnsFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		Route53API: route53API,
+		fetcher:    fetch.NewFetcher(awsfetch.BuildDnsFetchFuncs(fetchConfig)),
+		config:     awsconf,
+		region:     region,
+		log:        log,
 	}
 }
 
@@ -1619,18 +1645,20 @@ type Lambda struct {
 
 func NewLambda(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	lambdaAPI := lambda.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		lambdaAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Lambda{
-		LambdaAPI: lambda.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildLambdaFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		LambdaAPI: lambdaAPI,
+		fetcher:   fetch.NewFetcher(awsfetch.BuildLambdaFetchFuncs(fetchConfig)),
+		config:    awsconf,
+		region:    region,
+		log:       log,
 	}
 }
 
@@ -1745,18 +1773,20 @@ type Monitoring struct {
 
 func NewMonitoring(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	cloudwatchAPI := cloudwatch.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		cloudwatchAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Monitoring{
-		CloudWatchAPI: cloudwatch.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildMonitoringFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		CloudWatchAPI: cloudwatchAPI,
+		fetcher:       fetch.NewFetcher(awsfetch.BuildMonitoringFetchFuncs(fetchConfig)),
+		config:        awsconf,
+		region:        region,
+		log:           log,
 	}
 }
 
@@ -1891,18 +1921,20 @@ type Cdn struct {
 
 func NewCdn(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := "global"
+	cloudfrontAPI := cloudfront.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		cloudfrontAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Cdn{
-		CloudFrontAPI: cloudfront.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildCdnFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		CloudFrontAPI: cloudfrontAPI,
+		fetcher:       fetch.NewFetcher(awsfetch.BuildCdnFetchFuncs(fetchConfig)),
+		config:        awsconf,
+		region:        region,
+		log:           log,
 	}
 }
 
@@ -2017,18 +2049,20 @@ type Cloudformation struct {
 
 func NewCloudformation(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
+	cloudformationAPI := cloudformation.New(sess)
+
+	fetchConfig := awsfetch.NewConfig(
+		cloudformationAPI,
+	)
+	fetchConfig.Extra = awsconf
+	fetchConfig.Log = log
+
 	return &Cloudformation{
-		CloudFormationAPI: cloudformation.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildCloudformationFetchFuncs(
-			&awsfetch.Config{
-				Sess:  sess,
-				Extra: awsconf,
-				Log:   log,
-			},
-		)),
-		config: awsconf,
-		region: region,
-		log:    log,
+		CloudFormationAPI: cloudformationAPI,
+		fetcher:           fetch.NewFetcher(awsfetch.BuildCloudformationFetchFuncs(fetchConfig)),
+		config:            awsconf,
+		region:            region,
+		log:               log,
 	}
 }
 

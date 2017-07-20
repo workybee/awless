@@ -90,11 +90,6 @@ import (
 
 {{- range $index, $service := . }}
 func Build{{ Title $service.Name }}FetchFuncs(conf *Config) fetch.Funcs {
-{{- range $, $api := $service.Api }}
-	{{ $api }}_api := {{ $api }}.New(conf.Sess)
-	{{ $api }}_api = {{ $api }}_api // avoid not used message when api is only manual mode
-{{- end }}
-	
 	funcs := make(map[string]fetch.Func)
 
 	addManual{{ Title $service.Name }}FetchFuncs(conf, funcs)
@@ -113,7 +108,7 @@ func Build{{ Title $service.Name }}FetchFuncs(conf *Config) fetch.Funcs {
 		
 		{{- if $fetcher.Multipage }}
 		var badResErr error
-		err := {{ $fetcher.Api}}_api.{{ $fetcher.ApiMethod }}(&{{ $fetcher.Input }},
+		err := conf.APIs.{{ Title $fetcher.Api}}.{{ $fetcher.ApiMethod }}(&{{ $fetcher.Input }},
 			func(out *{{ $fetcher.Output }}, lastPage bool) (shouldContinue bool) {
 				{{- if ne $fetcher.OutputsContainers "" }}
 				for _, all := range out.{{ $fetcher.OutputsContainers }} {
@@ -141,7 +136,7 @@ func Build{{ Title $service.Name }}FetchFuncs(conf *Config) fetch.Funcs {
 		return resources, objects, badResErr
 		{{- else }}
 		
-		out, err := {{ $fetcher.Api}}_api.{{ $fetcher.ApiMethod }}(&{{ $fetcher.Input }})
+		out, err := conf.APIs.{{ Title $fetcher.Api}}.{{ $fetcher.ApiMethod }}(&{{ $fetcher.Input }})
 		if err != nil {
 			return resources, objects, err
 		}

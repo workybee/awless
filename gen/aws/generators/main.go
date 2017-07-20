@@ -39,7 +39,7 @@ func main() {
 	flag.Parse()
 
 	// fetchers
-	generateFetcherFuncs()
+	//generateFetcherFuncs()
 	generateNewFetcherFuncs()
 	generateServicesFuncs()
 
