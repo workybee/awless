@@ -10,7 +10,6 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -25,13 +24,18 @@ import (
 	"github.com/wallix/awless/graph"
 )
 
-func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
-	elbv2API := elbv2.New(sess)
-	ecsAPI := ecs.New(sess)
+func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+	elbv2API := elbv2.New(conf.Sess)
+	ecsAPI := ecs.New(conf.Sess)
 
 	funcs["containerinstance"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.ContainerInstance
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.infra.containerinstance.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource infra[containerinstance]")
+			return resources, objects, nil
+		}
 
 		var clusterArns ([]*string)
 		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
@@ -84,6 +88,11 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 	funcs["container"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.Container
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.infra.container.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource infra[container]")
+			return resources, objects, nil
+		}
 
 		var tasks ([]*ecs.Task)
 		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
@@ -147,6 +156,11 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 	funcs["containertask"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*ecs.TaskDefinition
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.infra.containertask.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource infra[containertask]")
+			return resources, objects, nil
+		}
 
 		type resStruct struct {
 			res   *ecs.TaskDefinition
@@ -278,6 +292,11 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 		var resources []*graph.Resource
 		var objects []*ecs.Cluster
 
+		if !conf.getBoolDefaultTrue("aws.infra.containercluster.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource infra[containercluster]")
+			return resources, objects, nil
+		}
+
 		var clusterNames ([]*string)
 		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
 			clusterNames = cached
@@ -311,6 +330,11 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 	funcs["listener"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*elbv2.Listener
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.infra.listener.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource infra[listener]")
+			return resources, objects, nil
+		}
 
 		errc := make(chan error)
 		resultc := make(chan *elbv2.Listener)
@@ -366,12 +390,17 @@ func addManualInfraFetchFuncs(sess *session.Session, funcs map[string]fetch.Func
 	}
 }
 
-func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
-	iamAPI := iam.New(sess)
+func addManualAccessFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+	iamAPI := iam.New(conf.Sess)
 
 	funcs["user"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*iam.UserDetail
+
+		if !conf.getBoolDefaultTrue("aws.access.user.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource access[user]")
+			return resources, objects, nil
+		}
 
 		var wg sync.WaitGroup
 		errc := make(chan error)
@@ -444,6 +473,11 @@ func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Fun
 		var resources []*graph.Resource
 		var objects []*iam.Policy
 
+		if !conf.getBoolDefaultTrue("aws.access.policy.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource access[policy]")
+			return resources, objects, nil
+		}
+
 		errc := make(chan error)
 		policiesc := make(chan *iam.Policy)
 
@@ -508,12 +542,18 @@ func addManualAccessFetchFuncs(sess *session.Session, funcs map[string]fetch.Fun
 		}
 	}
 }
-func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
-	s3API := s3.New(sess)
+func addManualStorageFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+	s3API := s3.New(conf.Sess)
 
 	funcs["bucket"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var resources []*graph.Resource
 		var objects []*s3.Bucket
+
+		if !conf.getBoolDefaultTrue("aws.storage.bucket.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource storage[bucket]")
+			return resources, objects, nil
+		}
+
 		bucketM := &sync.Mutex{}
 
 		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
@@ -534,6 +574,11 @@ func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Fu
 		var objects []*s3.Object
 		var resources []*graph.Resource
 
+		if !conf.getBoolDefaultTrue("aws.storage.s3object.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource storage[s3object]")
+			return resources, objects, nil
+		}
+
 		err := forEachBucketParallel(ctx, cache, s3API, func(b *s3.Bucket) error {
 			return fetchObjectsForBucket(ctx, s3API, b, &resources)
 		})
@@ -541,12 +586,17 @@ func addManualStorageFetchFuncs(sess *session.Session, funcs map[string]fetch.Fu
 		return resources, objects, err
 	}
 }
-func addManualMessagingFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
-	sqsAPI := sqs.New(sess)
+func addManualMessagingFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+	sqsAPI := sqs.New(conf.Sess)
 
 	funcs["queue"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*string
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.messaging.queue.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource messaging[queue]")
+			return resources, objects, nil
+		}
 
 		out, err := sqsAPI.ListQueues(&sqs.ListQueuesInput{})
 		if err != nil {
@@ -624,12 +674,17 @@ func addManualMessagingFetchFuncs(sess *session.Session, funcs map[string]fetch.
 		return resources, objects, nil
 	}
 }
-func addManualDnsFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {
-	dnsAPI := route53.New(sess)
+func addManualDnsFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+	dnsAPI := route53.New(conf.Sess)
 
 	funcs["record"] = func(ctx context.Context, cache fetch.Cache) ([]*graph.Resource, interface{}, error) {
 		var objects []*route53.ResourceRecordSet
 		var resources []*graph.Resource
+
+		if !conf.getBoolDefaultTrue("aws.dns.record.sync") {
+			conf.Log.Verbose("sync: *disabled* for resource dns[record]")
+			return resources, objects, nil
+		}
 
 		zonec := make(chan *route53.HostedZone)
 		errc := make(chan error)
@@ -701,7 +756,11 @@ func addManualDnsFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) 
 		}
 	}
 }
-func addManualLambdaFetchFuncs(sess *session.Session, funcs map[string]fetch.Func)         {}
-func addManualMonitoringFetchFuncs(sess *session.Session, funcs map[string]fetch.Func)     {}
-func addManualCdnFetchFuncs(sess *session.Session, funcs map[string]fetch.Func)            {}
-func addManualCloudformationFetchFuncs(sess *session.Session, funcs map[string]fetch.Func) {}
+func addManualLambdaFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+}
+func addManualMonitoringFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+}
+func addManualCdnFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+}
+func addManualCloudformationFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
+}

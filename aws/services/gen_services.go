@@ -279,10 +279,16 @@ func NewInfra(sess *session.Session, awsconf config, log *logger.Logger) cloud.S
 		ECRAPI:         ecr.New(sess),
 		ECSAPI:         ecs.New(sess),
 		ApplicationAutoScalingAPI: applicationautoscaling.New(sess),
-		fetcher:                   fetch.NewFetcher(awsfetch.BuildInfraFetchFuncs(sess)),
-		config:                    awsconf,
-		region:                    region,
-		log:                       log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildInfraFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -925,12 +931,18 @@ type Access struct {
 func NewAccess(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := "global"
 	return &Access{
-		IAMAPI:  iam.New(sess),
-		STSAPI:  sts.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildAccessFetchFuncs(sess)),
-		config:  awsconf,
-		region:  region,
-		log:     log,
+		IAMAPI: iam.New(sess),
+		STSAPI: sts.New(sess),
+		fetcher: fetch.NewFetcher(awsfetch.BuildAccessFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1147,11 +1159,17 @@ type Storage struct {
 func NewStorage(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
 	return &Storage{
-		S3API:   s3.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildStorageFetchFuncs(sess)),
-		config:  awsconf,
-		region:  region,
-		log:     log,
+		S3API: s3.New(sess),
+		fetcher: fetch.NewFetcher(awsfetch.BuildStorageFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1288,12 +1306,18 @@ type Messaging struct {
 func NewMessaging(sess *session.Session, awsconf config, log *logger.Logger) cloud.Service {
 	region := awssdk.StringValue(sess.Config.Region)
 	return &Messaging{
-		SNSAPI:  sns.New(sess),
-		SQSAPI:  sqs.New(sess),
-		fetcher: fetch.NewFetcher(awsfetch.BuildMessagingFetchFuncs(sess)),
-		config:  awsconf,
-		region:  region,
-		log:     log,
+		SNSAPI: sns.New(sess),
+		SQSAPI: sqs.New(sess),
+		fetcher: fetch.NewFetcher(awsfetch.BuildMessagingFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1451,10 +1475,16 @@ func NewDns(sess *session.Session, awsconf config, log *logger.Logger) cloud.Ser
 	region := "global"
 	return &Dns{
 		Route53API: route53.New(sess),
-		fetcher:    fetch.NewFetcher(awsfetch.BuildDnsFetchFuncs(sess)),
-		config:     awsconf,
-		region:     region,
-		log:        log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildDnsFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1591,10 +1621,16 @@ func NewLambda(sess *session.Session, awsconf config, log *logger.Logger) cloud.
 	region := awssdk.StringValue(sess.Config.Region)
 	return &Lambda{
 		LambdaAPI: lambda.New(sess),
-		fetcher:   fetch.NewFetcher(awsfetch.BuildLambdaFetchFuncs(sess)),
-		config:    awsconf,
-		region:    region,
-		log:       log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildLambdaFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1711,10 +1747,16 @@ func NewMonitoring(sess *session.Session, awsconf config, log *logger.Logger) cl
 	region := awssdk.StringValue(sess.Config.Region)
 	return &Monitoring{
 		CloudWatchAPI: cloudwatch.New(sess),
-		fetcher:       fetch.NewFetcher(awsfetch.BuildMonitoringFetchFuncs(sess)),
-		config:        awsconf,
-		region:        region,
-		log:           log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildMonitoringFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1851,10 +1893,16 @@ func NewCdn(sess *session.Session, awsconf config, log *logger.Logger) cloud.Ser
 	region := "global"
 	return &Cdn{
 		CloudFrontAPI: cloudfront.New(sess),
-		fetcher:       fetch.NewFetcher(awsfetch.BuildCdnFetchFuncs(sess)),
-		config:        awsconf,
-		region:        region,
-		log:           log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildCdnFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
@@ -1971,10 +2019,16 @@ func NewCloudformation(sess *session.Session, awsconf config, log *logger.Logger
 	region := awssdk.StringValue(sess.Config.Region)
 	return &Cloudformation{
 		CloudFormationAPI: cloudformation.New(sess),
-		fetcher:           fetch.NewFetcher(awsfetch.BuildCloudformationFetchFuncs(sess)),
-		config:            awsconf,
-		region:            region,
-		log:               log,
+		fetcher: fetch.NewFetcher(awsfetch.BuildCloudformationFetchFuncs(
+			&awsfetch.Config{
+				Sess:  sess,
+				Extra: awsconf,
+				Log:   log,
+			},
+		)),
+		config: awsconf,
+		region: region,
+		log:    log,
 	}
 }
 
