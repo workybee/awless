@@ -57,15 +57,15 @@ func (g *Graph) AddResource(resources ...*Resource) error {
 
 		for relType, attachedRes := range res.Relations {
 			switch relType {
-			case rdf.ParentOf:
+			case rdf.ChildrenOfRel:
 				for _, attached := range attachedRes {
-					if err := g.AddParentRelation(res, attached); err != nil {
+					if err := g.AddParentRelation(attached, res); err != nil {
 						return err
 					}
 				}
-			case rdf.ApplyOn:
+			case rdf.DependingOnRel:
 				for _, attached := range attachedRes {
-					if err := g.AddAppliesOnRelation(res, attached); err != nil {
+					if err := g.AddAppliesOnRelation(attached, res); err != nil {
 						return err
 					}
 				}

@@ -52,7 +52,7 @@ func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api s3iface.S
 	return nil
 }
 
-func fetchObjectsForBucket(ctx context.Context, api s3iface.S3API, bucket *s3.Bucket, resources *[]*graph.Resource) error {
+func fetchObjectsForBucket(ctx context.Context, api s3iface.S3API, bucket *s3.Bucket, resourcesC chan<- *graph.Resource) error {
 	out, err := api.ListObjects(&s3.ListObjectsInput{Bucket: bucket.Name})
 	if err != nil {
 		return err
@@ -64,13 +64,13 @@ func fetchObjectsForBucket(ctx context.Context, api s3iface.S3API, bucket *s3.Bu
 			return err
 		}
 		res.Properties["Bucket"] = awssdk.StringValue(bucket.Name)
-		*resources = append(*resources, res)
+		resourcesC <- res
 		parent, err := awsconv.InitResource(bucket)
 		if err != nil {
 			return err
 		}
-		parent.Relations[rdf.ParentOf] = append(parent.Relations[rdf.ParentOf], res)
-		*resources = append(*resources, parent)
+		res.Relations[rdf.ChildrenOfRel] = append(res.Relations[rdf.ChildrenOfRel], parent)
+		resourcesC <- parent
 	}
 
 	return nil
@@ -127,4 +127,34 @@ func getBucketsPerRegion(ctx context.Context, api s3iface.S3API) ([]*s3.Bucket, 
 			buckets = append(buckets, b)
 		}
 	}
+}
+
+func fetchAndExtractGrantsFn(ctx context.Context, api s3iface.S3API, bucketName string) ([]*graph.Grant, error) {
+	acls, err := api.GetBucketAcl(&s3.GetBucketAclInput{Bucket: awssdk.String(bucketName)})
+	if err != nil {
+		return nil, err
+	}
+	var grants []*graph.Grant
+	for _, acl := range acls.Grants {
+		displayName := awssdk.StringValue(acl.Grantee.DisplayName)
+		granteeType := awssdk.StringValue(acl.Grantee.Type)
+		granteeId := awssdk.StringValue(acl.Grantee.ID)
+
+		if awssdk.StringValue(acl.Grantee.EmailAddress) != "" {
+			displayName += "<" + awssdk.StringValue(acl.Grantee.EmailAddress) + ">"
+		}
+		if granteeType == "Group" {
+			granteeId += awssdk.StringValue(acl.Grantee.URI)
+		}
+		grant := &graph.Grant{
+			Permission: awssdk.StringValue(acl.Permission),
+			Grantee: graph.Grantee{
+				GranteeID:          granteeId,
+				GranteeType:        granteeType,
+				GranteeDisplayName: displayName,
+			},
+		}
+		grants = append(grants, grant)
+	}
+	return grants, nil
 }

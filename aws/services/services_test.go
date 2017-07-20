@@ -1276,21 +1276,21 @@ func compareResources(t *testing.T, g *graph.Graph, resources []*graph.Resource,
 	for _, got := range resources {
 		want := expected[got.Id()]
 		if !reflect.DeepEqual(got, want) {
-			// fmt.Println("got:")
-			// pretty.Print(got)
-			// fmt.Println("\nwant:")
-			// pretty.Print(want)
-			t.Fatalf("got \n%#v\nwant\n%#v", got, want)
+			//fmt.Println("got:")
+			//pretty.Print(got)
+			//fmt.Println("\nwant:")
+			//pretty.Print(want)
+			t.Errorf("got \n%#v\nwant\n%#v", got, want)
 		}
 		children := mustGetChildrenId(g, got)
 		sort.Strings(children)
 		if g, w := children, expectedChildren[got.Id()]; !reflect.DeepEqual(g, w) {
-			t.Fatalf("'%s' children: got %v, want %v", got.Id(), g, w)
+			t.Errorf("'%s' children: got %v, want %v", got.Id(), g, w)
 		}
 		appliedOn := mustGetAppliedOnId(g, got)
 		sort.Strings(appliedOn)
 		if g, w := appliedOn, expectedAppliedOn[got.Id()]; !reflect.DeepEqual(g, w) {
-			t.Fatalf("'%s' appliedOn: got %v, want %v", got.Id(), g, w)
+			t.Errorf("'%s' appliedOn: got %v, want %v", got.Id(), g, w)
 		}
 	}
 }
