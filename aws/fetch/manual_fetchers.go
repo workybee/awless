@@ -34,16 +34,14 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			return resources, objects, nil
 		}
 
-		var clusterArns ([]*string)
-		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
-			clusterArns = cached
-		} else {
-			res, err := getClustersNames(ctx, conf.APIs.Ecs)
-			if err != nil {
-				return resources, objects, err
-			}
-			clusterArns = res
-			cache.Store("getClustersNames", res)
+		var clusterArns []*string
+
+		if val, e := cache.Get("getClustersNames", func() (interface{}, error) {
+			return getClustersNames(ctx, conf.APIs.Ecs)
+		}); e != nil {
+			return resources, objects, e
+		} else if v, ok := val.([]*string); ok {
+			clusterArns = v
 		}
 
 		for _, cluster := range clusterArns {
@@ -90,25 +88,21 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			return resources, objects, nil
 		}
 
-		var tasks ([]*ecs.Task)
-		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
-			tasks = cached
-		} else {
-			res, err := getAllTasks(ctx, cache, conf.APIs.Ecs)
-			if err != nil {
-				return resources, objects, err
-			}
-			tasks = res
-			cache.Store("getAllTasks", res)
-		}
+		var tasks []*ecs.Task
 
-		var err error
+		if val, e := cache.Get("getAllTasks", func() (interface{}, error) {
+			return getAllTasks(ctx, cache, conf.APIs.Ecs)
+		}); e != nil {
+			return resources, objects, e
+		} else if v, ok := val.([]*ecs.Task); ok {
+			tasks = v
+		}
 
 		for _, task := range tasks {
 			for _, container := range task.Containers {
-				var res *graph.Resource
 				objects = append(objects, container)
-				if res, err = awsconv.NewResource(container); err != nil {
+				res, err := awsconv.NewResource(container)
+				if err != nil {
 					return nil, nil, err
 				}
 				if task.ClusterArn != nil {
@@ -195,16 +189,13 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			close(resc)
 		}()
 
-		var tasks ([]*ecs.Task)
-		if cached, ok := cache.Get("getAllTasks").([]*ecs.Task); ok && cached != nil {
-			tasks = cached
-		} else {
-			res, err := getAllTasks(ctx, cache, conf.APIs.Ecs)
-			if err != nil {
-				return resources, objects, err
-			}
-			tasks = res
-			cache.Store("getAllTasks", res)
+		var tasks []*ecs.Task
+		if val, e := cache.Get("getAllTasks", func() (interface{}, error) {
+			return getAllTasks(ctx, cache, conf.APIs.Ecs)
+		}); e != nil {
+			return resources, objects, e
+		} else if v, ok := val.([]*ecs.Task); ok {
+			tasks = v
 		}
 
 		var errors []string
@@ -297,16 +288,14 @@ func addManualInfraFetchFuncs(conf *Config, funcs map[string]fetch.Func) {
 			return resources, objects, nil
 		}
 
-		var clusterNames ([]*string)
-		if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
-			clusterNames = cached
-		} else {
-			res, err := getClustersNames(ctx, conf.APIs.Ecs)
-			if err != nil {
-				return resources, objects, err
-			}
-			clusterNames = res
-			cache.Store("getClustersNames", res)
+		var clusterNames []*string
+
+		if val, e := cache.Get("getClustersNames", func() (interface{}, error) {
+			return getClustersNames(ctx, conf.APIs.Ecs)
+		}); e != nil {
+			return resources, objects, e
+		} else if v, ok := val.([]*string); ok {
+			clusterNames = v
 		}
 
 		for _, clusterArns := range sliceOfSlice(clusterNames, 100) {

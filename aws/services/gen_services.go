@@ -392,11 +392,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.infra.instance.sync", true) {
-		list, ok := s.fetcher.Get("instance_objects").([]*ec2.Instance)
-		if !ok {
+		list, err := s.fetcher.Get("instance_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Instance); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Instance' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Instance) {
 			for _, fn := range addParentsFns["instance"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Instance) {
@@ -411,11 +414,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.subnet.sync", true) {
-		list, ok := s.fetcher.Get("subnet_objects").([]*ec2.Subnet)
-		if !ok {
+		list, err := s.fetcher.Get("subnet_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Subnet); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Subnet' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Subnet) {
 			for _, fn := range addParentsFns["subnet"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Subnet) {
@@ -430,11 +436,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.vpc.sync", true) {
-		list, ok := s.fetcher.Get("vpc_objects").([]*ec2.Vpc)
-		if !ok {
+		list, err := s.fetcher.Get("vpc_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Vpc); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Vpc' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Vpc) {
 			for _, fn := range addParentsFns["vpc"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Vpc) {
@@ -449,11 +458,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.keypair.sync", true) {
-		list, ok := s.fetcher.Get("keypair_objects").([]*ec2.KeyPairInfo)
-		if !ok {
+		list, err := s.fetcher.Get("keypair_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.KeyPairInfo); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.KeyPairInfo' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.KeyPairInfo) {
 			for _, fn := range addParentsFns["keypair"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.KeyPairInfo) {
@@ -468,11 +480,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.securitygroup.sync", true) {
-		list, ok := s.fetcher.Get("securitygroup_objects").([]*ec2.SecurityGroup)
-		if !ok {
+		list, err := s.fetcher.Get("securitygroup_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.SecurityGroup); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.SecurityGroup' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.SecurityGroup) {
 			for _, fn := range addParentsFns["securitygroup"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.SecurityGroup) {
@@ -487,11 +502,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.volume.sync", true) {
-		list, ok := s.fetcher.Get("volume_objects").([]*ec2.Volume)
-		if !ok {
+		list, err := s.fetcher.Get("volume_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Volume); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Volume' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Volume) {
 			for _, fn := range addParentsFns["volume"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Volume) {
@@ -506,11 +524,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.internetgateway.sync", true) {
-		list, ok := s.fetcher.Get("internetgateway_objects").([]*ec2.InternetGateway)
-		if !ok {
+		list, err := s.fetcher.Get("internetgateway_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.InternetGateway); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.InternetGateway' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.InternetGateway) {
 			for _, fn := range addParentsFns["internetgateway"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.InternetGateway) {
@@ -525,11 +546,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.natgateway.sync", true) {
-		list, ok := s.fetcher.Get("natgateway_objects").([]*ec2.NatGateway)
-		if !ok {
+		list, err := s.fetcher.Get("natgateway_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.NatGateway); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.NatGateway' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.NatGateway) {
 			for _, fn := range addParentsFns["natgateway"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.NatGateway) {
@@ -544,11 +568,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.routetable.sync", true) {
-		list, ok := s.fetcher.Get("routetable_objects").([]*ec2.RouteTable)
-		if !ok {
+		list, err := s.fetcher.Get("routetable_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.RouteTable); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.RouteTable' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.RouteTable) {
 			for _, fn := range addParentsFns["routetable"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.RouteTable) {
@@ -563,11 +590,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.availabilityzone.sync", true) {
-		list, ok := s.fetcher.Get("availabilityzone_objects").([]*ec2.AvailabilityZone)
-		if !ok {
+		list, err := s.fetcher.Get("availabilityzone_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.AvailabilityZone); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.AvailabilityZone' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.AvailabilityZone) {
 			for _, fn := range addParentsFns["availabilityzone"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.AvailabilityZone) {
@@ -582,11 +612,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.image.sync", true) {
-		list, ok := s.fetcher.Get("image_objects").([]*ec2.Image)
-		if !ok {
+		list, err := s.fetcher.Get("image_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Image); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Image' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Image) {
 			for _, fn := range addParentsFns["image"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Image) {
@@ -601,11 +634,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.importimagetask.sync", true) {
-		list, ok := s.fetcher.Get("importimagetask_objects").([]*ec2.ImportImageTask)
-		if !ok {
+		list, err := s.fetcher.Get("importimagetask_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.ImportImageTask); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.ImportImageTask' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.ImportImageTask) {
 			for _, fn := range addParentsFns["importimagetask"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.ImportImageTask) {
@@ -620,11 +656,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.elasticip.sync", true) {
-		list, ok := s.fetcher.Get("elasticip_objects").([]*ec2.Address)
-		if !ok {
+		list, err := s.fetcher.Get("elasticip_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Address); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Address' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Address) {
 			for _, fn := range addParentsFns["elasticip"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Address) {
@@ -639,11 +678,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.snapshot.sync", true) {
-		list, ok := s.fetcher.Get("snapshot_objects").([]*ec2.Snapshot)
-		if !ok {
+		list, err := s.fetcher.Get("snapshot_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ec2.Snapshot); !ok {
 			return gph, errors.New("cannot cast to '[]*ec2.Snapshot' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ec2.Snapshot) {
 			for _, fn := range addParentsFns["snapshot"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ec2.Snapshot) {
@@ -658,11 +700,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.loadbalancer.sync", true) {
-		list, ok := s.fetcher.Get("loadbalancer_objects").([]*elbv2.LoadBalancer)
-		if !ok {
+		list, err := s.fetcher.Get("loadbalancer_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*elbv2.LoadBalancer); !ok {
 			return gph, errors.New("cannot cast to '[]*elbv2.LoadBalancer' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*elbv2.LoadBalancer) {
 			for _, fn := range addParentsFns["loadbalancer"] {
 				wg.Add(1)
 				go func(f addParentFn, res *elbv2.LoadBalancer) {
@@ -677,11 +722,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.targetgroup.sync", true) {
-		list, ok := s.fetcher.Get("targetgroup_objects").([]*elbv2.TargetGroup)
-		if !ok {
+		list, err := s.fetcher.Get("targetgroup_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*elbv2.TargetGroup); !ok {
 			return gph, errors.New("cannot cast to '[]*elbv2.TargetGroup' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*elbv2.TargetGroup) {
 			for _, fn := range addParentsFns["targetgroup"] {
 				wg.Add(1)
 				go func(f addParentFn, res *elbv2.TargetGroup) {
@@ -696,11 +744,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.listener.sync", true) {
-		list, ok := s.fetcher.Get("listener_objects").([]*elbv2.Listener)
-		if !ok {
+		list, err := s.fetcher.Get("listener_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*elbv2.Listener); !ok {
 			return gph, errors.New("cannot cast to '[]*elbv2.Listener' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*elbv2.Listener) {
 			for _, fn := range addParentsFns["listener"] {
 				wg.Add(1)
 				go func(f addParentFn, res *elbv2.Listener) {
@@ -715,11 +766,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.database.sync", true) {
-		list, ok := s.fetcher.Get("database_objects").([]*rds.DBInstance)
-		if !ok {
+		list, err := s.fetcher.Get("database_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*rds.DBInstance); !ok {
 			return gph, errors.New("cannot cast to '[]*rds.DBInstance' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*rds.DBInstance) {
 			for _, fn := range addParentsFns["database"] {
 				wg.Add(1)
 				go func(f addParentFn, res *rds.DBInstance) {
@@ -734,11 +788,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.dbsubnetgroup.sync", true) {
-		list, ok := s.fetcher.Get("dbsubnetgroup_objects").([]*rds.DBSubnetGroup)
-		if !ok {
+		list, err := s.fetcher.Get("dbsubnetgroup_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*rds.DBSubnetGroup); !ok {
 			return gph, errors.New("cannot cast to '[]*rds.DBSubnetGroup' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*rds.DBSubnetGroup) {
 			for _, fn := range addParentsFns["dbsubnetgroup"] {
 				wg.Add(1)
 				go func(f addParentFn, res *rds.DBSubnetGroup) {
@@ -753,11 +810,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.launchconfiguration.sync", true) {
-		list, ok := s.fetcher.Get("launchconfiguration_objects").([]*autoscaling.LaunchConfiguration)
-		if !ok {
+		list, err := s.fetcher.Get("launchconfiguration_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*autoscaling.LaunchConfiguration); !ok {
 			return gph, errors.New("cannot cast to '[]*autoscaling.LaunchConfiguration' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*autoscaling.LaunchConfiguration) {
 			for _, fn := range addParentsFns["launchconfiguration"] {
 				wg.Add(1)
 				go func(f addParentFn, res *autoscaling.LaunchConfiguration) {
@@ -772,11 +832,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.scalinggroup.sync", true) {
-		list, ok := s.fetcher.Get("scalinggroup_objects").([]*autoscaling.Group)
-		if !ok {
+		list, err := s.fetcher.Get("scalinggroup_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*autoscaling.Group); !ok {
 			return gph, errors.New("cannot cast to '[]*autoscaling.Group' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*autoscaling.Group) {
 			for _, fn := range addParentsFns["scalinggroup"] {
 				wg.Add(1)
 				go func(f addParentFn, res *autoscaling.Group) {
@@ -791,11 +854,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.scalingpolicy.sync", true) {
-		list, ok := s.fetcher.Get("scalingpolicy_objects").([]*autoscaling.ScalingPolicy)
-		if !ok {
+		list, err := s.fetcher.Get("scalingpolicy_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*autoscaling.ScalingPolicy); !ok {
 			return gph, errors.New("cannot cast to '[]*autoscaling.ScalingPolicy' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*autoscaling.ScalingPolicy) {
 			for _, fn := range addParentsFns["scalingpolicy"] {
 				wg.Add(1)
 				go func(f addParentFn, res *autoscaling.ScalingPolicy) {
@@ -810,11 +876,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.repository.sync", true) {
-		list, ok := s.fetcher.Get("repository_objects").([]*ecr.Repository)
-		if !ok {
+		list, err := s.fetcher.Get("repository_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ecr.Repository); !ok {
 			return gph, errors.New("cannot cast to '[]*ecr.Repository' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ecr.Repository) {
 			for _, fn := range addParentsFns["repository"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ecr.Repository) {
@@ -829,11 +898,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.containercluster.sync", true) {
-		list, ok := s.fetcher.Get("containercluster_objects").([]*ecs.Cluster)
-		if !ok {
+		list, err := s.fetcher.Get("containercluster_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ecs.Cluster); !ok {
 			return gph, errors.New("cannot cast to '[]*ecs.Cluster' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ecs.Cluster) {
 			for _, fn := range addParentsFns["containercluster"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ecs.Cluster) {
@@ -848,11 +920,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.containertask.sync", true) {
-		list, ok := s.fetcher.Get("containertask_objects").([]*ecs.TaskDefinition)
-		if !ok {
+		list, err := s.fetcher.Get("containertask_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ecs.TaskDefinition); !ok {
 			return gph, errors.New("cannot cast to '[]*ecs.TaskDefinition' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ecs.TaskDefinition) {
 			for _, fn := range addParentsFns["containertask"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ecs.TaskDefinition) {
@@ -867,11 +942,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.container.sync", true) {
-		list, ok := s.fetcher.Get("container_objects").([]*ecs.Container)
-		if !ok {
+		list, err := s.fetcher.Get("container_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ecs.Container); !ok {
 			return gph, errors.New("cannot cast to '[]*ecs.Container' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ecs.Container) {
 			for _, fn := range addParentsFns["container"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ecs.Container) {
@@ -886,11 +964,14 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.infra.containerinstance.sync", true) {
-		list, ok := s.fetcher.Get("containerinstance_objects").([]*ecs.ContainerInstance)
-		if !ok {
+		list, err := s.fetcher.Get("containerinstance_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*ecs.ContainerInstance); !ok {
 			return gph, errors.New("cannot cast to '[]*ecs.ContainerInstance' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*ecs.ContainerInstance) {
 			for _, fn := range addParentsFns["containerinstance"] {
 				wg.Add(1)
 				go func(f addParentFn, res *ecs.ContainerInstance) {
@@ -1024,11 +1105,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.access.user.sync", true) {
-		list, ok := s.fetcher.Get("user_objects").([]*iam.UserDetail)
-		if !ok {
+		list, err := s.fetcher.Get("user_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.UserDetail); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.UserDetail' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.UserDetail) {
 			for _, fn := range addParentsFns["user"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.UserDetail) {
@@ -1043,11 +1127,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.access.group.sync", true) {
-		list, ok := s.fetcher.Get("group_objects").([]*iam.GroupDetail)
-		if !ok {
+		list, err := s.fetcher.Get("group_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.GroupDetail); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.GroupDetail' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.GroupDetail) {
 			for _, fn := range addParentsFns["group"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.GroupDetail) {
@@ -1062,11 +1149,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.access.role.sync", true) {
-		list, ok := s.fetcher.Get("role_objects").([]*iam.RoleDetail)
-		if !ok {
+		list, err := s.fetcher.Get("role_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.RoleDetail); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.RoleDetail' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.RoleDetail) {
 			for _, fn := range addParentsFns["role"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.RoleDetail) {
@@ -1081,11 +1171,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.access.policy.sync", true) {
-		list, ok := s.fetcher.Get("policy_objects").([]*iam.Policy)
-		if !ok {
+		list, err := s.fetcher.Get("policy_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.Policy); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.Policy' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.Policy) {
 			for _, fn := range addParentsFns["policy"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.Policy) {
@@ -1100,11 +1193,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.access.accesskey.sync", true) {
-		list, ok := s.fetcher.Get("accesskey_objects").([]*iam.AccessKeyMetadata)
-		if !ok {
+		list, err := s.fetcher.Get("accesskey_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.AccessKeyMetadata); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.AccessKeyMetadata' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.AccessKeyMetadata) {
 			for _, fn := range addParentsFns["accesskey"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.AccessKeyMetadata) {
@@ -1119,11 +1215,14 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.access.instanceprofile.sync", true) {
-		list, ok := s.fetcher.Get("instanceprofile_objects").([]*iam.InstanceProfile)
-		if !ok {
+		list, err := s.fetcher.Get("instanceprofile_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*iam.InstanceProfile); !ok {
 			return gph, errors.New("cannot cast to '[]*iam.InstanceProfile' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*iam.InstanceProfile) {
 			for _, fn := range addParentsFns["instanceprofile"] {
 				wg.Add(1)
 				go func(f addParentFn, res *iam.InstanceProfile) {
@@ -1248,11 +1347,14 @@ func (s *Storage) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.storage.bucket.sync", true) {
-		list, ok := s.fetcher.Get("bucket_objects").([]*s3.Bucket)
-		if !ok {
+		list, err := s.fetcher.Get("bucket_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*s3.Bucket); !ok {
 			return gph, errors.New("cannot cast to '[]*s3.Bucket' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*s3.Bucket) {
 			for _, fn := range addParentsFns["bucket"] {
 				wg.Add(1)
 				go func(f addParentFn, res *s3.Bucket) {
@@ -1267,11 +1369,14 @@ func (s *Storage) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.storage.s3object.sync", true) {
-		list, ok := s.fetcher.Get("s3object_objects").([]*s3.Object)
-		if !ok {
+		list, err := s.fetcher.Get("s3object_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*s3.Object); !ok {
 			return gph, errors.New("cannot cast to '[]*s3.Object' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*s3.Object) {
 			for _, fn := range addParentsFns["s3object"] {
 				wg.Add(1)
 				go func(f addParentFn, res *s3.Object) {
@@ -1402,11 +1507,14 @@ func (s *Messaging) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.messaging.subscription.sync", true) {
-		list, ok := s.fetcher.Get("subscription_objects").([]*sns.Subscription)
-		if !ok {
+		list, err := s.fetcher.Get("subscription_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*sns.Subscription); !ok {
 			return gph, errors.New("cannot cast to '[]*sns.Subscription' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*sns.Subscription) {
 			for _, fn := range addParentsFns["subscription"] {
 				wg.Add(1)
 				go func(f addParentFn, res *sns.Subscription) {
@@ -1421,11 +1529,14 @@ func (s *Messaging) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.messaging.topic.sync", true) {
-		list, ok := s.fetcher.Get("topic_objects").([]*sns.Topic)
-		if !ok {
+		list, err := s.fetcher.Get("topic_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*sns.Topic); !ok {
 			return gph, errors.New("cannot cast to '[]*sns.Topic' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*sns.Topic) {
 			for _, fn := range addParentsFns["topic"] {
 				wg.Add(1)
 				go func(f addParentFn, res *sns.Topic) {
@@ -1440,11 +1551,14 @@ func (s *Messaging) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.messaging.queue.sync", true) {
-		list, ok := s.fetcher.Get("queue_objects").([]*string)
-		if !ok {
+		list, err := s.fetcher.Get("queue_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*string); !ok {
 			return gph, errors.New("cannot cast to '[]*string' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*string) {
 			for _, fn := range addParentsFns["queue"] {
 				wg.Add(1)
 				go func(f addParentFn, res *string) {
@@ -1569,11 +1683,14 @@ func (s *Dns) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.dns.zone.sync", true) {
-		list, ok := s.fetcher.Get("zone_objects").([]*route53.HostedZone)
-		if !ok {
+		list, err := s.fetcher.Get("zone_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*route53.HostedZone); !ok {
 			return gph, errors.New("cannot cast to '[]*route53.HostedZone' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*route53.HostedZone) {
 			for _, fn := range addParentsFns["zone"] {
 				wg.Add(1)
 				go func(f addParentFn, res *route53.HostedZone) {
@@ -1588,11 +1705,14 @@ func (s *Dns) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.dns.record.sync", true) {
-		list, ok := s.fetcher.Get("record_objects").([]*route53.ResourceRecordSet)
-		if !ok {
+		list, err := s.fetcher.Get("record_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*route53.ResourceRecordSet); !ok {
 			return gph, errors.New("cannot cast to '[]*route53.ResourceRecordSet' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*route53.ResourceRecordSet) {
 			for _, fn := range addParentsFns["record"] {
 				wg.Add(1)
 				go func(f addParentFn, res *route53.ResourceRecordSet) {
@@ -1716,11 +1836,14 @@ func (s *Lambda) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.lambda.function.sync", true) {
-		list, ok := s.fetcher.Get("function_objects").([]*lambda.FunctionConfiguration)
-		if !ok {
+		list, err := s.fetcher.Get("function_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*lambda.FunctionConfiguration); !ok {
 			return gph, errors.New("cannot cast to '[]*lambda.FunctionConfiguration' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*lambda.FunctionConfiguration) {
 			for _, fn := range addParentsFns["function"] {
 				wg.Add(1)
 				go func(f addParentFn, res *lambda.FunctionConfiguration) {
@@ -1845,11 +1968,14 @@ func (s *Monitoring) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.monitoring.metric.sync", true) {
-		list, ok := s.fetcher.Get("metric_objects").([]*cloudwatch.Metric)
-		if !ok {
+		list, err := s.fetcher.Get("metric_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*cloudwatch.Metric); !ok {
 			return gph, errors.New("cannot cast to '[]*cloudwatch.Metric' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*cloudwatch.Metric) {
 			for _, fn := range addParentsFns["metric"] {
 				wg.Add(1)
 				go func(f addParentFn, res *cloudwatch.Metric) {
@@ -1864,11 +1990,14 @@ func (s *Monitoring) FetchResources() (*graph.Graph, error) {
 		}
 	}
 	if s.config.getBool("aws.monitoring.alarm.sync", true) {
-		list, ok := s.fetcher.Get("alarm_objects").([]*cloudwatch.MetricAlarm)
-		if !ok {
+		list, err := s.fetcher.Get("alarm_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*cloudwatch.MetricAlarm); !ok {
 			return gph, errors.New("cannot cast to '[]*cloudwatch.MetricAlarm' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*cloudwatch.MetricAlarm) {
 			for _, fn := range addParentsFns["alarm"] {
 				wg.Add(1)
 				go func(f addParentFn, res *cloudwatch.MetricAlarm) {
@@ -1992,11 +2121,14 @@ func (s *Cdn) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.cdn.distribution.sync", true) {
-		list, ok := s.fetcher.Get("distribution_objects").([]*cloudfront.DistributionSummary)
-		if !ok {
+		list, err := s.fetcher.Get("distribution_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*cloudfront.DistributionSummary); !ok {
 			return gph, errors.New("cannot cast to '[]*cloudfront.DistributionSummary' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*cloudfront.DistributionSummary) {
 			for _, fn := range addParentsFns["distribution"] {
 				wg.Add(1)
 				go func(f addParentFn, res *cloudfront.DistributionSummary) {
@@ -2120,11 +2252,14 @@ func (s *Cloudformation) FetchResources() (*graph.Graph, error) {
 	errc := make(chan error)
 	var wg sync.WaitGroup
 	if s.config.getBool("aws.cloudformation.stack.sync", true) {
-		list, ok := s.fetcher.Get("stack_objects").([]*cloudformation.Stack)
-		if !ok {
+		list, err := s.fetcher.Get("stack_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*cloudformation.Stack); !ok {
 			return gph, errors.New("cannot cast to '[]*cloudformation.Stack' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*cloudformation.Stack) {
 			for _, fn := range addParentsFns["stack"] {
 				wg.Add(1)
 				go func(f addParentFn, res *cloudformation.Stack) {

@@ -1271,7 +1271,8 @@ func mustGetAppliedOnId(g *graph.Graph, res *graph.Resource) []string {
 
 func compareResources(t *testing.T, g *graph.Graph, resources []*graph.Resource, expected map[string]*graph.Resource, expectedChildren, expectedAppliedOn map[string][]string) {
 	if got, want := len(resources), len(expected); got != want {
-		t.Fatalf("got %d, want %d", got, want)
+		t.Errorf("got %d, want %d", got, want)
+		t.Fatalf("got %#v\nwant %#v\n", resources, expected)
 	}
 	for _, got := range resources {
 		want := expected[got.Id()]

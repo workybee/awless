@@ -15,15 +15,13 @@ import (
 
 func forEachBucketParallel(ctx context.Context, cache fetch.Cache, api s3iface.S3API, f func(b *s3.Bucket) error) error {
 	var buckets []*s3.Bucket
-	if cached, ok := cache.Get("getBucketsPerRegion").([]*s3.Bucket); ok && cached != nil {
-		buckets = cached
-	} else {
-		res, err := getBucketsPerRegion(ctx, api)
-		if err != nil {
-			return err
-		}
-		buckets = res
-		cache.Store("getBucketsPerRegion", res)
+
+	if val, e := cache.Get("getBucketsPerRegion", func() (interface{}, error) {
+		return getBucketsPerRegion(ctx, api)
+	}); e != nil {
+		return e
+	} else if v, ok := val.([]*s3.Bucket); ok {
+		buckets = v
 	}
 
 	errc := make(chan error)

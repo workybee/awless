@@ -128,10 +128,10 @@ func (s *sessionResolver) resolve() (*session.Session, error) {
 
 	if s.enableNetworkMonitorRequestsHandlers {
 		session.Handlers.Send.PushFront(func(r *request.Request) {
-			//DefaultNetworkMonitor.addRequest(r)
+			DefaultNetworkMonitor.addRequest(r)
 		})
 		session.Handlers.Complete.PushBack(func(r *request.Request) {
-			//DefaultNetworkMonitor.setRequestEnd(r)
+			DefaultNetworkMonitor.setRequestEnd(r)
 		})
 	}
 

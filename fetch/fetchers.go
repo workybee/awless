@@ -16,7 +16,7 @@ type Fetcher interface {
 
 type Cache interface {
 	Store(key string, val interface{})
-	Get(key string) interface{}
+	Get(key string, funcs ...func() (interface{}, error)) (interface{}, error)
 	Reset()
 }
 
@@ -126,30 +126,48 @@ func (f *fetcher) fetchResource(ctx context.Context, resourceType string, result
 }
 
 type cache struct {
-	sync.RWMutex
-	store map[string]interface{}
+	mu     sync.RWMutex
+	cached map[string]*keyCache
 }
 
 func newCache() *cache {
 	return &cache{
-		store: make(map[string]interface{}),
+		cached: make(map[string]*keyCache),
 	}
 }
 
-func (c *cache) Store(key string, val interface{}) {
-	c.Lock()
-	c.store[key] = val
-	c.Unlock()
+type keyCache struct {
+	once   sync.Once
+	err    error
+	result interface{}
 }
 
-func (c *cache) Get(key string) interface{} {
-	c.RLock()
-	defer c.RUnlock()
-	return c.store[key]
+func (c *cache) Get(key string, funcs ...func() (interface{}, error)) (interface{}, error) {
+	c.mu.Lock()
+	cache, ok := c.cached[key]
+	if !ok {
+		cache = &keyCache{}
+		c.cached[key] = cache
+	}
+	c.mu.Unlock()
+
+	if len(funcs) > 0 {
+		cache.once.Do(func() {
+			cache.result, cache.err = funcs[0]()
+		})
+	}
+
+	return cache.result, cache.err
+}
+
+func (c *cache) Store(key string, val interface{}) {
+	c.mu.Lock()
+	c.cached[key] = &keyCache{result: val}
+	c.mu.Unlock()
 }
 
 func (c *cache) Reset() {
-	c.Lock()
-	c.store = make(map[string]interface{})
-	c.Unlock()
+	c.mu.Lock()
+	c.cached = make(map[string]*keyCache)
+	c.mu.Unlock()
 }
