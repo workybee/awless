@@ -19,16 +19,12 @@ func getClustersNames(ctx context.Context, api ecsiface.ECSAPI) (res []*string, 
 }
 
 func getAllTasks(ctx context.Context, cache fetch.Cache, api ecsiface.ECSAPI) (res []*ecs.Task, err error) {
-	var clusterArns ([]*string)
-	if cached, ok := cache.Get("getClustersNames").([]*string); ok && cached != nil {
-		clusterArns = cached
-	} else {
-		arns, err := getClustersNames(ctx, api)
-		if err != nil {
-			return []*ecs.Task{}, err
-		}
-		clusterArns = arns
-		cache.Store("getClustersNames", arns)
+	var clusterArns []*string
+	if _, err = cache.Get("getClustersNames", func() (interface{}, error) {
+		clusterArns, err = getClustersNames(ctx, api)
+		return clusterArns, err
+	}); err != nil {
+		return nil, err
 	}
 
 	type listTasksOutput struct {

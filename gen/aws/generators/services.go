@@ -244,11 +244,14 @@ func (s *{{ Title $service.Name }}) FetchResources() (*graph.Graph, error) {
 
 	{{- range $index, $fetcher := $service.Fetchers }}
 	if s.config.getBool("aws.{{ $service.Name }}.{{ $fetcher.ResourceType }}.sync", true) {
-		list, ok := s.fetcher.Get("{{ $fetcher.ResourceType }}_objects").([]*{{ $fetcher.AWSType }})
-		if !ok {
+		list, err := s.fetcher.Get("{{ $fetcher.ResourceType }}_objects")
+		if err != nil {
+			return gph, err
+		}
+		if _, ok := list.([]*{{ $fetcher.AWSType }}); !ok {
 			return gph, errors.New("cannot cast to '[]*{{ $fetcher.AWSType }}' type from fetch context")
 		}
-		for _, r := range list {
+		for _, r := range list.([]*{{ $fetcher.AWSType }}) {
 			for _, fn := range addParentsFns["{{ $fetcher.ResourceType }}"] {
 				wg.Add(1)
 				go func(f addParentFn, res *{{ $fetcher.AWSType }}) {
